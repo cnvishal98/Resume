@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tailor — AI Resume Optimizer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --ink:#13203B; --navy:#1F3864; --bg:#EEF1F5; --white:#FFF;
+  --hairline:#DCE1EA; --muted:#697587; --green:#2E8B6B;
+  --coral:#C0492F; --amber:#B7791F; --purple:#5B4DB8; --teal:#1A7A8A;
+  --shadow:0 1px 3px rgba(19,32,59,.08),0 0 0 1px var(--hairline);
+  --r:6px;
+  --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"SF Mono","Fira Code",Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55;min-height:100vh}
+
+/* HEADER */
+header{background:var(--navy);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo{font-family:var(--mono);font-size:17px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.logo span{color:rgba(255,255,255,.4);font-weight:400}
+.hbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:4px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:var(--ui)}
+.hbtn:hover{background:rgba(255,255,255,.2)}
+
+/* MAIN */
+main{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+
+/* SETTINGS */
+.settings{background:var(--white);border:1px solid var(--hairline);border-radius:var(--r);padding:16px 20px;margin-bottom:20px;display:none}
+.settings.open{display:block}
+.settings h3{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
+.srow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:700px){.srow{grid-template-columns:1fr}}
+.srow label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.srow input{width:100%;border:1px solid var(--hairline);border-radius:4px;padding:7px 10px;font-size:13px;color:var(--ink);background:var(--bg);font-family:var(--mono);outline:none}
+.srow input:focus{border-color:var(--navy)}
+
+/* CARDS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.card-hd{padding:12px 16px 10px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card-title{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+/* TABS */
+.tabs{display:flex;gap:2px}
+.tbtn{border:none;background:none;font-size:11px;font-family:var(--mono);padding:4px 8px;border-radius:3px;cursor:pointer;color:var(--muted)}
+.tbtn.on{background:var(--navy);color:#fff}
+.tbtn:hover:not(.on){background:var(--bg)}
+.tpane{display:none;padding:14px 16px}
+.tpane.on{display:block}
+
+/* UPLOAD */
+.dropzone{border:1.5px dashed var(--hairline);border-radius:4px;padding:28px 16px;text-align:center;cursor:pointer;position:relative;transition:border-color .15s,background .15s}
+.dropzone:hover,.dropzone.over{border-color:var(--navy);background:#f5f7fb}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dropzone svg{width:32px;height:32px;margin:0 auto 10px;color:var(--muted)}
+.drop-lbl{font-size:13px;color:var(--muted)}
+.drop-lbl strong{color:var(--navy)}
+.drop-name{font-family:var(--mono);font-size:11px;color:var(--green);margin-top:6px;display:none}
+textarea{width:100%;border:1px solid var(--hairline);border-radius:4px;padding:10px 12px;font-size:13px;color:var(--ink);background:var(--bg);font-family:var(--ui);resize:vertical;min-height:180px;outline:none;line-height:1.5}
+textarea:focus{border-color:var(--navy);background:#fff}
+#jd-ta{min-height:220px}
+.pnote{font-size:11px;color:var(--muted);padding:8px 16px;border-top:1px solid var(--hairline);display:flex;align-items:center;gap:6px}
+
+/* BUTTONS */
+.btn{border:none;border-radius:var(--r);padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ui);display:inline-flex;align-items:center;gap:8px;transition:opacity .15s,background .15s}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn-navy{background:var(--navy);color:#fff}.btn-navy:hover:not(:disabled){background:#163060}
+.btn-outline{background:var(--white);color:var(--navy);border:1px solid var(--hairline)}.btn-outline:hover:not(:disabled){background:var(--bg)}
+.btn-purple{background:var(--purple);color:#fff}.btn-purple:hover:not(:disabled){background:#4a3da0}
+.btn-teal{background:var(--teal);color:#fff}.btn-teal:hover:not(:disabled){background:#155f6e}
+
+/* STATUS */
+.action-row{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+.status{font-size:12px;font-family:var(--mono);color:var(--muted);display:flex;align-items:center;gap:7px}
+.status.err{color:var(--coral)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot.spin-dot{background:var(--amber);animation:pulse 1.2s infinite}
+.dot.ok{background:var(--green)}
+.dot.err{background:var(--coral)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@media(prefers-reduced-motion:reduce){.dot.spin-dot{animation:none}}
+
+/* ERROR BOX */
+.err-box{background:#fdf0ed;border:1px solid #f5cdc5;border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--coral);margin-bottom:16px;display:none}
+.err-box.show{display:block}
+
+/* RELATED JOBS */
+.rj-section{margin-bottom:24px}
+.rj-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.sec-title{font-size:13px;font-weight:700;color:var(--ink)}
+.badge{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px;border-radius:20px}
+.badge-teal{background:#e6f4f6;color:var(--teal);border:1px solid #b3d9de}
+.badge-purple{background:#ede9fb;color:var(--purple);border:1px solid #cfc9f2}
+.rj-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.loc-input{border:1px solid var(--hairline);border-radius:4px;padding:7px 11px;font-size:13px;color:var(--ink);background:var(--white);font-family:var(--ui);outline:none;width:180px}
+.loc-input:focus{border-color:var(--teal)}
+
+/* PILLS */
+.pills-strip{background:var(--white);border:1px solid var(--hairline);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;display:none}
+.pills-strip.show{display:block}
+.pills-hd{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.pills-hd a{color:var(--teal);cursor:pointer;font-size:10px;font-family:var(--mono)}
+.pills-hd a:hover{text-decoration:underline}
+.pills-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid}
+.pill-role{background:#e6f4f6;color:var(--teal);border-color:#b3d9de}
+.pill-skill{background:#ede9fb;color:var(--purple);border-color:#cfc9f2}
+.pill-loc{background:#fff8ec;color:var(--amber);border-color:#f5dfa5}
+.pill-avail{background:#e8f6f1;color:var(--green);border-color:#c3e6d8}
+.pill-rm{background:none;border:none;cursor:pointer;color:inherit;opacity:.5;padding:0;font-size:13px;line-height:1;font-family:var(--mono)}
+.pill-rm:hover{opacity:1}
+.pill-add{background:none;border:1px dashed var(--hairline);border-radius:20px;padding:3px 10px;font-size:11px;font-family:var(--mono);color:var(--muted);cursor:pointer}
+.pill-add:hover{border-color:var(--teal);color:var(--teal)}
+.pill-input{border:1px solid var(--teal);border-radius:20px;padding:3px 10px;font-size:11px;font-family:var(--mono);color:var(--ink);background:var(--white);outline:none;width:130px;display:none}
+
+/* JOB CARDS */
+.jobs-wrap{position:relative}
+.jobs-empty{text-align:center;padding:32px 20px;color:var(--muted);font-size:13px}
+.jobs-empty svg{margin:0 auto 10px;display:block;color:var(--hairline)}
+.jobs-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:28px;color:var(--muted);font-size:13px;font-family:var(--mono)}
+.jobs-err{padding:12px 16px;background:#fdf0ed;border:1px solid #f5cdc5;border-radius:var(--r);font-size:13px;color:var(--coral)}
+.jobs-count{font-size:11px;font-family:var(--mono);color:var(--muted);padding:0 0 8px}
+.jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.jcard{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:7px;border-left:3px solid var(--teal);transition:box-shadow .15s}
+.jcard:hover{box-shadow:0 4px 12px rgba(19,32,59,.12),0 0 0 1px var(--hairline)}
+.jtitle{font-size:13px;font-weight:700;color:var(--ink);line-height:1.35}
+.jco{font-size:12px;color:var(--navy);font-weight:600}
+.jmeta{display:flex;flex-wrap:wrap;gap:5px}
+.jtag{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;background:var(--bg);color:var(--muted);border:1px solid var(--hairline)}
+.jtag-loc{color:var(--teal);background:#e6f4f6;border-color:#b3d9de}
+.jtag-type{color:var(--amber);background:#fff8ec;border-color:#f5dfa5}
+.jsnippet{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.jactions{display:flex;gap:7px;margin-top:2px}
+.juse{flex:1;background:var(--teal);color:#fff;border:none;border-radius:4px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--ui)}
+.juse:hover{background:#155f6e}
+.jview{background:var(--white);color:var(--muted);border:1px solid var(--hairline);border-radius:4px;padding:7px 10px;font-size:12px;cursor:pointer;font-family:var(--ui);text-decoration:none;display:inline-flex;align-items:center}
+.jview:hover{background:var(--bg)}
+.jnotice{font-size:11px;color:var(--green);font-family:var(--mono);display:none;margin-top:2px}
+
+/* PROFILE FIT */
+.fit-section{margin-bottom:24px}
+.fit-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.fit-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;border-left:3px solid var(--purple)}
+.fit-card .card-hd{background:#faf9ff;border-bottom:1px solid #e8e4f8}
+.profile-form{padding:16px 18px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:760px){.pgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.pgrid{grid-template-columns:1fr}}
+.pfield{display:flex;flex-direction:column;gap:4px}
+.pfield label{font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pfield input,.pfield select,.pfield textarea{border:1px solid var(--hairline);border-radius:4px;padding:7px 10px;font-size:13px;color:var(--ink);background:var(--bg);font-family:var(--ui);outline:none;min-height:auto;resize:none}
+.pfield input:focus,.pfield select:focus,.pfield textarea:focus{border-color:var(--purple);background:#fff}
+.span2{grid-column:span 2}.span3{grid-column:span 3}
+@media(max-width:760px){.span3{grid-column:span 2}}
+@media(max-width:480px){.span2,.span3{grid-column:span 1}}
+.pnote-info{padding:14px 18px;font-size:13px;color:var(--muted);display:flex;align-items:flex-start;gap:10px;background:#faf9ff}
+.pnote-info svg{flex-shrink:0;margin-top:1px;color:var(--purple)}
+.phint{font-size:11px;color:var(--muted);padding:8px 18px 14px;font-style:italic}
+
+/* FIT RESULTS */
+#fit-results{display:none;margin-bottom:20px}
+.fcard{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);border-left:3px solid var(--purple);overflow:hidden}
+.fcard-hd{padding:14px 18px;background:#faf9ff;border-bottom:1px solid #e8e4f8;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fscore{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--purple);line-height:1}
+.fscore-lbl{font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase}
+.fpill{font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.fpill.strong,.fpill.good{background:#e8f6f1;color:var(--green);border:1px solid #c3e6d8}
+.fpill.partial{background:#fff8ec;color:var(--amber);border:1px solid #f5dfa5}
+.fpill.stretch,.fpill.poor{background:#fdf0ed;color:var(--coral);border:1px solid #f5cdc5}
+.fdims{padding:16px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;border-bottom:1px solid var(--hairline)}
+@media(max-width:600px){.fdims{grid-template-columns:1fr 1fr}}
+.fdim{display:flex;flex-direction:column;gap:5px}
+.fdim-lbl{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.fdim-bar-bg{height:5px;background:var(--hairline);border-radius:3px;overflow:hidden}
+.fdim-bar{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.fbody{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.fbody{grid-template-columns:1fr}}
+.fcol-ttl{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
+.fcol-ttl.g{color:var(--green)}.fcol-ttl.r{color:var(--coral)}
+.flist{list-style:none;display:flex;flex-direction:column;gap:6px}
+.flist li{font-size:12.5px;color:var(--ink);padding-left:16px;position:relative;line-height:1.45}
+.flist li::before{position:absolute;left:0;top:1px}
+.flist.str li::before{content:'✓';color:var(--green);font-weight:700}
+.flist.flg li::before{content:'!';color:var(--coral);font-weight:700}
+.frec{padding:14px 18px;background:#faf9ff;border-top:1px solid #e8e4f8;font-size:13px;color:var(--ink);line-height:1.55}
+.frec strong{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--purple);display:block;margin-bottom:5px}
+
+/* ATS RESULTS */
+#results{display:none}
+.res-grid{display:grid;grid-template-columns:240px 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:760px){.res-grid{grid-template-columns:1fr}}
+.gauge-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.gauge-lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.gauge-wrap{position:relative;width:140px;height:140px}
+.gauge-svg{transform:rotate(-90deg)}
+.gtrack{fill:none;stroke:var(--hairline);stroke-width:12}
+.garc{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1),stroke .4s}
+@media(prefers-reduced-motion:reduce){.garc{transition:none}}
+.gnum{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-size:36px;font-weight:700;color:var(--ink);line-height:1}
+.gnum small{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.verdict{font-size:12.5px;color:var(--muted);text-align:center;line-height:1.45;max-width:190px}
+.delta{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:20px;font-weight:600}
+.delta.pos{background:#e8f6f1;color:var(--green)}
+.delta.neg{background:#fdf0ed;color:var(--coral)}
+.delta.zero{background:var(--bg);color:var(--muted)}
+.kw-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px}
+.eyebrow{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.kw-grp{margin-bottom:12px}
+.kw-grp:last-child{margin-bottom:0}
+.kw-grp-lbl{font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:3px}
+.chip-g{background:#e8f6f1;color:var(--green);border:1px solid #c3e6d8}
+.chip-c{background:#fdf0ed;color:var(--coral);border:1px solid #f5cdc5}
+.gap-card,.sum-card,.bul-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+.gap-item{border-left:2px solid var(--amber);padding:8px 12px;margin-bottom:8px;background:#fffaf3;border-radius:0 4px 4px 0}
+.gap-item:last-child{margin-bottom:0}
+.gap-area{font-size:11px;font-family:var(--mono);font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:3px}
+.gap-fix{font-size:12.5px;color:var(--ink)}
+.sum-text{font-size:13px;color:var(--ink);line-height:1.6;margin-bottom:10px;padding:10px 12px;background:var(--bg);border-radius:4px;border-left:3px solid var(--navy)}
+.chk-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.chk-row input{accent-color:var(--navy)}
+.bul-item{border:1px solid var(--hairline);border-radius:4px;padding:12px 14px;margin-bottom:8px}
+.bul-item:last-child{margin-bottom:0}
+.bul-item.dim{opacity:.55}
+.bul-before{font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:5px;line-height:1.5}
+.bul-arrow{font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)}
+.bul-after{font-size:13px;color:var(--ink);line-height:1.5;font-weight:500}
+.bul-ctrls{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--hairline);flex-wrap:wrap}
+.bul-inc{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
+.bul-inc input{accent-color:var(--navy);cursor:pointer}
+.bul-copy{background:var(--bg);border:1px solid var(--hairline);border-radius:3px;padding:3px 9px;font-size:11px;font-family:var(--mono);color:var(--muted);cursor:pointer;margin-left:auto}
+.bul-copy:hover{background:var(--hairline)}
+.loc-warn{font-size:11px;color:var(--coral);font-family:var(--mono);font-style:italic}
+.exp-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* SPINNER */
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;flex-shrink:0}
+.spin.dk{border-color:var(--hairline);border-top-color:var(--navy)}
+@keyframes rot{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Tailor<span>.ai</span></div>
+  <button class="hbtn" onclick="toggleSettings()">⚙ Settings</button>
+</header>
+<main>
+
+<!-- SETTINGS -->
+<div class="settings" id="settings-panel">
+  <h3>API Configuration</h3>
+  <div class="srow">
+    <div>
+      <label for="api-key">Anthropic API Key</label>
+      <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" oninput="saveSettings()">
+    </div>
+    <div>
+      <label for="api-ep">Endpoint (optional)</label>
+      <input type="text" id="api-ep" placeholder="https://api.anthropic.com/v1/messages" oninput="saveSettings()">
+    </div>
+    <div>
+      <label for="apify-key">Apify API Key</label>
+      <input type="password" id="apify-key" placeholder="apify_api_..." autocomplete="off" oninput="saveSettings()">
+    </div>
+  </div>
+</div>
+
+<!-- INPUTS -->
+<div class="grid2">
+  <div class="card" id="resume-card">
+    <div class="card-hd">
+      <span class="card-title">Resume</span>
+      <div class="tabs" id="res-tabs">
+        <button class="tbtn on" onclick="switchTab('res','up')">Upload</button>
+        <button class="tbtn" onclick="switchTab('res','paste')">Paste</button>
+      </div>
+    </div>
+    <div class="tpane on" id="res-up-pane">
+      <div class="dropzone" id="dropzone"
+        ondragover="event.preventDefault();this.classList.add('over')"
+        ondragleave="this.classList.remove('over')"
+        ondrop="onDrop(event)">
+        <input type="file" accept=".docx" onchange="onFile(this.files[0])">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div class="drop-lbl"><strong>Click to upload</strong> or drag & drop<br><span style="font-size:11px">Supports .docx</span></div>
+        <div class="drop-name" id="drop-name"></div>
+      </div>
+    </div>
+    <div class="tpane" id="res-paste-pane">
+      <textarea id="res-ta" placeholder="Paste your resume text here…" rows="9" oninput="onResumeChange()"></textarea>
+    </div>
+    <div class="pnote">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Sent to AI for analysis. Nothing stored.
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Job Description</span></div>
+    <div class="tpane on">
+      <textarea id="jd-ta" placeholder="Paste the full job description here…" rows="10" oninput="checkReady()"></textarea>
+    </div>
+    <div class="pnote">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Sent to AI for analysis. Nothing stored.
+    </div>
+  </div>
+</div>
+
+<!-- RELATED JOBS -->
+<div class="rj-section">
+  <div class="rj-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="sec-title">Related Jobs</span>
+      <span class="badge badge-teal">Apify · AI-matched</span>
+    </div>
+    <div class="rj-controls">
+      <input class="loc-input" type="text" id="jobs-loc" placeholder="📍 Location (optional)">
+      <button class="btn btn-teal" id="jobs-btn" onclick="searchJobs()" disabled style="padding:9px 18px;font-size:13px">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+        Find Jobs
+      </button>
+    </div>
+  </div>
+  <div class="pills-strip" id="pills-strip">
+    <div class="pills-hd">
+      <span>Searching based on your resume</span>
+      <a onclick="reExtract()">↺ Re-extract</a>
+    </div>
+    <div class="pills-row" id="pills-row">
+      <button class="pill-add" onclick="startAddPill()">+ add</button>
+    </div>
+    <input class="pill-input" id="pill-input" placeholder="type & Enter" onkeydown="commitPill(event)" onblur="cancelPill()">
+  </div>
+  <div id="jobs-out">
+    <div class="jobs-empty">
+      <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      Upload or paste your resume — Tailor will automatically match and search live jobs for you.
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE FIT -->
+<div class="fit-section">
+  <div class="fit-hd">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="sec-title">Profile Fit Check</span>
+      <span class="badge badge-purple">Optional</span>
+    </div>
+    <button class="btn btn-purple" id="fit-btn" disabled onclick="runFit()" style="padding:9px 18px;font-size:13px">
+      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+      Check Fit
+    </button>
+  </div>
+  <div class="fit-card card">
+    <div class="card-hd">
+      <span class="card-title">Your Profile</span>
+      <div class="tabs" id="fit-tabs">
+        <button class="tbtn on" onclick="switchFitTab('auto')">From Resume</button>
+        <button class="tbtn" onclick="switchFitTab('manual')">Enter Details</button>
+      </div>
+    </div>
+    <div class="tpane on" id="fit-auto-pane">
+      <div class="pnote-info">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>AI will extract your profile from your resume and compare it against the job requirements. Upload or paste your resume first, then click <strong>Check Fit</strong>.</span>
+      </div>
+    </div>
+    <div class="tpane" id="fit-manual-pane">
+      <div class="profile-form">
+        <div class="pgrid">
+          <div class="pfield"><label>Full Name</label><input type="text" id="pf-name" placeholder="Jane Smith"></div>
+          <div class="pfield"><label>Current / Last Role</label><input type="text" id="pf-title" placeholder="Senior PM"></div>
+          <div class="pfield"><label>Years Experience</label><input type="number" id="pf-yoe" placeholder="7" min="0" max="50"></div>
+          <div class="pfield"><label>Education</label>
+            <select id="pf-edu"><option value="">Select…</option><option>High School</option><option>Associate's</option><option>Bachelor's</option><option>Master's</option><option>MBA</option><option>PhD</option><option>Bootcamp</option></select>
+          </div>
+          <div class="pfield"><label>Field of Study</label><input type="text" id="pf-field" placeholder="Computer Science"></div>
+          <div class="pfield"><label>Location</label><input type="text" id="pf-loc" placeholder="Sydney, AU"></div>
+          <div class="pfield span2"><label>Key Skills (comma-separated)</label><input type="text" id="pf-skills" placeholder="Python, SQL, Agile…"></div>
+          <div class="pfield"><label>Work Authorization</label>
+            <select id="pf-visa"><option value="">Select…</option><option>Citizen / PR</option><option>Valid Work Visa</option><option>Needs Sponsorship</option></select>
+          </div>
+          <div class="pfield span3"><label>Certifications</label><input type="text" id="pf-certs" placeholder="PMP, AWS SAA…"></div>
+          <div class="pfield span3"><label>Anything else</label><textarea id="pf-extra" rows="2" style="min-height:0" placeholder="Relocation, salary, other context…"></textarea></div>
+        </div>
+      </div>
+      <div class="phint">Blank fields are inferred from your resume if provided.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FIT RESULTS -->
+<div id="fit-results">
+  <div class="fcard">
+    <div class="fcard-hd">
+      <div><div class="fscore" id="fscore">—</div><div class="fscore-lbl">Profile Fit Score</div></div>
+      <span class="fpill" id="fpill">—</span>
+    </div>
+    <div class="fdims" id="fdims"></div>
+    <div class="fbody">
+      <div><div class="fcol-ttl g">✓ Strengths</div><ul class="flist str" id="fstr"></ul></div>
+      <div><div class="fcol-ttl r">! Flags</div><ul class="flist flg" id="fflg"></ul></div>
+    </div>
+    <div class="frec"><strong>Recommendation</strong><span id="frec"></span></div>
+  </div>
+</div>
+
+<!-- ACTION ROW -->
+<div class="action-row">
+  <button class="btn btn-navy" id="opt-btn" disabled onclick="runOptimize()">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    Optimize
+  </button>
+  <div class="status" id="status-line">
+    <span class="dot" id="status-dot"></span>
+    <span id="status-txt">Upload your resume and paste a job description to begin</span>
+  </div>
+</div>
+
+<!-- ERROR BOX -->
+<div class="err-box" id="err-box"></div>
+
+<!-- ATS RESULTS -->
+<div id="results">
+  <div class="res-grid">
+    <div class="gauge-card">
+      <div class="gauge-lbl">ATS Match Score</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+          <circle class="gtrack" cx="70" cy="70" r="54"/>
+          <circle class="garc" id="garc" cx="70" cy="70" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+        </svg>
+        <div class="gnum"><span id="gnum">0</span><small>/ 100</small></div>
+      </div>
+      <div class="verdict" id="verdict"></div>
+      <div id="delta-wrap" style="display:none"><span class="delta" id="delta"></span></div>
+    </div>
+    <div class="kw-card">
+      <div class="eyebrow">Keyword Analysis</div>
+      <div class="kw-grp"><div class="kw-grp-lbl">✓ Matched</div><div class="chips" id="kw-match"></div></div>
+      <div class="kw-grp"><div class="kw-grp-lbl">+ Missing</div><div class="chips" id="kw-miss"></div></div>
+    </div>
+  </div>
+  <div class="gap-card"><div class="eyebrow">Gaps &amp; Fixes</div><div id="gaps"></div></div>
+  <div class="sum-card">
+    <div class="eyebrow">Tailored Summary</div>
+    <div class="sum-text" id="sum-text"></div>
+    <div class="chk-row"><input type="checkbox" id="sum-inc" checked><label for="sum-inc">Include in export</label></div>
+  </div>
+  <div class="bul-card"><div class="eyebrow">Rewritten Bullets</div><div id="bullets"></div></div>
+  <div class="exp-row">
+    <button class="btn btn-navy" id="exp-btn" disabled onclick="exportDocx()">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      Export .docx
+    </button>
+    <button class="btn btn-outline" id="rescore-btn" disabled onclick="runRescore()" style="padding:9px 18px;font-size:13px">
+      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Re-score
+    </button>
+  </div>
+</div>
+
+</main>
+<script>
+// ── STATE ──
+let resumeText = '';
+let origScore = null;
+let analysisData = null;
+let tailorData = null;
+let bulletItems = [];
+let pills = [];
+let pillsExtracted = false;
+let fitTabMode = 'auto';
+
+// ── SETTINGS ──
+function toggleSettings(){ document.getElementById('settings-panel').classList.toggle('open'); }
+function saveSettings(){
+  sessionStorage.setItem('tk', document.getElementById('api-key').value);
+  sessionStorage.setItem('te', document.getElementById('api-ep').value);
+  sessionStorage.setItem('ak', document.getElementById('apify-key').value);
+}
+(function loadSettings(){
+  document.getElementById('api-key').value = sessionStorage.getItem('tk')||'';
+  document.getElementById('api-ep').value = sessionStorage.getItem('te')||'';
+  document.getElementById('apify-key').value = sessionStorage.getItem('ak')||'';
+})();
+
+// ── TABS ──
+function switchTab(section, tab){
+  const card = document.getElementById(section+'-card') || document.querySelector('.card');
+  document.querySelectorAll('#'+section+'-tabs .tbtn').forEach((b,i)=> b.classList.toggle('on', i===(tab==='up'?0:1)));
+  document.getElementById(section+'-up-pane').classList.toggle('on', tab==='up');
+  document.getElementById(section+'-paste-pane').classList.toggle('on', tab==='paste');
+}
+function switchFitTab(mode){
+  fitTabMode = mode;
+  document.querySelectorAll('#fit-tabs .tbtn').forEach((b,i)=> b.classList.toggle('on', i===(mode==='auto'?0:1)));
+  document.getElementById('fit-auto-pane').classList.toggle('on', mode==='auto');
+  document.getElementById('fit-manual-pane').classList.toggle('on', mode==='manual');
+}
+
+// ── FILE / TEXT INPUT ──
+function onDrop(e){
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if(f) onFile(f);
+}
+function onFile(file){
+  if(!file) return;
+  if(!file.name.toLowerCase().endsWith('.docx')){ showErr('Please upload a .docx file.'); return; }
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const r = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
+      resumeText = r.value;
+      document.getElementById('drop-name').textContent = '✓ '+file.name;
+      document.getElementById('drop-name').style.display = 'block';
+      onResumeReady();
+    } catch(e){ showErr('Could not read .docx — try pasting as text instead.'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function onResumeChange(){
+  resumeText = document.getElementById('res-ta').value;
+  onResumeReady();
+}
+function onResumeReady(){
+  checkReady();
+  if(resumeText.trim().length > 50 && !pillsExtracted){
+    pillsExtracted = true;
+    extractPills();
+  }
+}
+
+// ── READY CHECK ──
+function checkReady(){
+  const jd = document.getElementById('jd-ta').value.trim();
+  const hasR = resumeText.trim().length > 50;
+  const hasJ = jd.length > 50;
+  const ready = hasR && hasJ;
+  document.getElementById('opt-btn').disabled = !ready;
+  document.getElementById('fit-btn').disabled = !ready;
+  document.getElementById('jobs-btn').disabled = !hasR;
+  setStatus(ready ? 'Ready — click Optimize' : (hasR ? 'Paste a job description to continue' : 'Upload or paste your resume to begin'), '');
+}
+
+// ── STATUS / ERROR ──
+function setStatus(msg, state){
+  document.getElementById('status-txt').textContent = msg;
+  document.getElementById('status-dot').className = 'dot'+(state?' '+state:'');
+  document.getElementById('status-line').className = 'status'+(state==='err'?' err':'');
+}
+function showErr(msg){
+  const box = document.getElementById('err-box');
+  box.textContent = msg;
+  box.classList.add('show');
+  setTimeout(()=>box.classList.remove('show'), 8000);
+}
+function clearErr(){ document.getElementById('err-box').classList.remove('show'); }
+
+// ── LLM CALL ──
+async function llm(prompt, maxTok=1500){
+  const key = document.getElementById('api-key').value.trim();
+  const ep  = document.getElementById('api-ep').value.trim() || 'https://api.anthropic.com/v1/messages';
+  if(!key) throw new Error('No Anthropic API key — open ⚙ Settings and add it.');
+  const res = await fetch(ep, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:maxTok, messages:[{role:'user',content:prompt}] })
+  });
+  if(!res.ok){
+    let msg = 'API error '+res.status;
+    try{ const j=await res.json(); msg+=': '+(j.error&&j.error.message||'').slice(0,200); }catch(_){}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const raw = (data.content||[]).map(b=>b.text||'').join('');
+  if(!raw.trim()) throw new Error('Empty response from API. Check your key.');
+  return safeJSON(raw);
+}
+
+function safeJSON(raw){
+  let s = raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
+  const a=s.indexOf('{'), z=s.lastIndexOf('}');
+  if(a<0||z<0) throw new Error('No JSON in response. Raw: '+s.slice(0,100));
+  s = s.slice(a,z+1);
+  try{ return JSON.parse(s); }catch(e){
+    const lc=s.lastIndexOf(',');
+    if(lc>0) try{ return JSON.parse(s.slice(0,lc)+'}'); }catch(_){}
+    throw new Error('JSON parse failed: '+e.message+' — raw: '+s.slice(0,120));
+  }
+}
+
+// ── PILLS / AUTO-EXTRACT ──
+async function extractPills(){
+  const key = document.getElementById('api-key').value.trim();
+  if(!key) return; // wait until user adds key
+  const strip = document.getElementById('pills-strip');
+  const row = document.getElementById('pills-row');
+  strip.classList.add('show');
+  row.innerHTML = '<span style="font-size:11px;color:var(--muted);font-family:var(--mono);display:flex;align-items:center;gap:6px"><span class="spin dk" style="width:10px;height:10px;border-width:1.5px"></span> Reading resume…</span>';
+  try{
+    const data = await llm(
+`Analyse this resume and return ONLY valid minified JSON — no prose, no markdown:
+{"roles":["<best job title 1>","<best job title 2>","<best job title 3>"],"skills":["<skill1>","<skill2>","<skill3>","<skill4>"],"location":"<city/region or empty>","availability":"<open to work|actively looking|passively looking>"}
+roles = 3 realistic titles to search for, ordered best-fit to aspirational.
+skills = 4 most marketable specific skills (tools/languages/methods).
+location = city or region from resume header only, no country suffix.
+RESUME:
+"""${resumeText.trim().slice(0,3000)}"""`, 400);
+    pills=[];
+    (data.roles||[]).forEach(r=>pills.push({type:'role',label:r}));
+    (data.skills||[]).forEach(s=>pills.push({type:'skill',label:s}));
+    if(data.location) pills.push({type:'loc',label:data.location});
+    if(data.availability) pills.push({type:'avail',label:data.availability});
+    if(!document.getElementById('jobs-loc').value.trim() && data.location)
+      document.getElementById('jobs-loc').value = data.location;
+    renderPills();
+    if(document.getElementById('apify-key').value.trim()) searchJobs();
+  }catch(e){
+    row.innerHTML = '<span style="font-size:11px;color:var(--muted)">Could not extract — add your Anthropic key in ⚙ Settings, then click Find Jobs.</span><button class="pill-add" onclick="startAddPill()">+ add</button>';
+  }
+}
+async function reExtract(){ pillsExtracted=false; pills=[]; pillsExtracted=true; await extractPills(); }
+function renderPills(){
+  const row = document.getElementById('pills-row');
+  const icons={role:'🎯',skill:'⚡',loc:'📍',avail:'✓'};
+  row.innerHTML = pills.map((p,i)=>
+    `<span class="pill pill-${p.type}">${icons[p.type]||''} ${esc(p.label)}<button class="pill-rm" onclick="removePill(${i})">×</button></span>`
+  ).join('')+'<button class="pill-add" onclick="startAddPill()">+ add</button>';
+}
+function removePill(i){ pills.splice(i,1); renderPills(); }
+function startAddPill(){
+  const inp=document.getElementById('pill-input');
+  inp.style.display='inline-block'; inp.value=''; inp.focus();
+}
+function commitPill(e){
+  if(e.key==='Enter'||e.key===','){
+    e.preventDefault();
+    const v=document.getElementById('pill-input').value.trim().replace(/,$/,'');
+    if(v){ pills.push({type:'skill',label:v}); renderPills(); }
+    document.getElementById('pill-input').style.display='none';
+  }
+  if(e.key==='Escape') cancelPill();
+}
+function cancelPill(){ const i=document.getElementById('pill-input'); i.style.display='none'; i.value=''; }
+
+// ── JOB SEARCH ──
+async function searchJobs(){
+  const apifyKey = document.getElementById('apify-key').value.trim();
+  const location = document.getElementById('jobs-loc').value.trim();
+  if(!apifyKey){ document.getElementById('jobs-out').innerHTML='<div class="jobs-err">Add your Apify API key in ⚙ Settings to search live jobs. Get a free key at <a href="https://apify.com" target="_blank">apify.com</a>.</div>'; return; }
+  const roles=pills.filter(p=>p.type==='role').map(p=>p.label);
+  const skills=pills.filter(p=>p.type==='skill').map(p=>p.label);
+  const pillLoc=pills.find(p=>p.type==='loc');
+  if(!roles.length&&!skills.length){ document.getElementById('jobs-out').innerHTML='<div class="jobs-err">No roles/skills found. Upload your resume or add pills manually.</div>'; return; }
+  const primaryRole=roles[0]||skills[0];
+  const skillHint=skills.slice(0,2).join(' ');
+  const q=skillHint?`${primaryRole} ${skillHint}`:primaryRole;
+  const loc=location||(pillLoc&&pillLoc.label)||'';
+  const btn=document.getElementById('jobs-btn');
+  btn.disabled=true; btn.innerHTML='<div class="spin"></div> Searching…';
+  document.getElementById('jobs-out').innerHTML='<div class="jobs-loading"><div class="spin dk"></div> Searching live jobs via Apify…</div>';
+  try{
+    const startR=await fetch(`https://api.apify.com/v2/acts/jupri~google-jobs-scraper/runs?token=${apifyKey}`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({queries:loc?`${q} ${loc}`:q, maxJobsPerQuery:12, languageCode:'en', datePosted:'month'})
+    });
+    if(!startR.ok) throw new Error('Actor unavailable');
+    const sd=await startR.json();
+    const runId=sd.data&&sd.data.id;
+    if(!runId) throw new Error('No run ID');
+    const items=await pollRun(runId,apifyKey);
+    renderJobs(items,primaryRole);
+  }catch(e){
+    try{ await jobsFallback(primaryRole,loc,apifyKey); }
+    catch(e2){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">Job search failed: ${esc(e2.message||e.message)}. Check your Apify key in ⚙ Settings.</div>`; }
+  }finally{
+    btn.disabled=false; btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg> Find Jobs';
+  }
+}
+async function jobsFallback(q,loc,apifyKey){
+  const startR=await fetch(`https://api.apify.com/v2/acts/misceres~indeed-scraper/runs?token=${apifyKey}`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({position:q,country:'US',location:loc||'',maxItems:12,parseCompanyDetails:false,saveOnlyUniqueItems:true,followApplyRedirects:false})
+  });
+  if(!startR.ok) throw new Error('Fallback actor unavailable');
+  const sd=await startR.json();
+  const runId=sd.data&&sd.data.id;
+  if(!runId) throw new Error('No run ID');
+  const items=await pollRun(runId,apifyKey);
+  renderJobsIndeed(items,q);
+}
+async function pollRun(runId,apifyKey,max=50000){
+  const t0=Date.now();
+  while(Date.now()-t0<max){
+    await new Promise(r=>setTimeout(r,2500));
+    const sr=await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apifyKey}`);
+    if(!sr.ok) continue;
+    const sd=await sr.json();
+    const status=sd.data&&sd.data.status;
+    if(status==='SUCCEEDED'){
+      const dsId=sd.data.defaultDatasetId;
+      const ir=await fetch(`https://api.apify.com/v2/datasets/${dsId}/items?token=${apifyKey}&limit=12`);
+      if(!ir.ok) throw new Error('Could not fetch results');
+      return await ir.json();
+    }
+    if(['FAILED','ABORTED','TIMED-OUT'].includes(status)) throw new Error('Run '+status);
+  }
+  throw new Error('Timed out waiting for results');
+}
+let jobsData=[];
+function renderJobs(items,q){
+  if(!items||!items.length){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">No jobs found for "${esc(q)}". Try different pills or location.</div>`; return; }
+  jobsData=items;
+  let h=`<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found</div><div class="jobs-grid">`;
+  items.forEach((j,i)=>{
+    const title=esc(j.title||j.jobTitle||'Untitled');
+    const co=esc(j.company||j.companyName||'');
+    const loc=esc(j.location||j.jobLocation||'');
+    const type=esc(j.jobType||j.employmentType||'');
+    const snip=esc((j.description||j.snippet||'').slice(0,200));
+    const url=j.applyLink||j.url||j.jobUrl||'#';
+    const posted=esc(j.datePosted||j.postedAt||'');
+    h+=`<div class="jcard" id="jc${i}">
+      <div class="jtitle">${title}</div>
+      ${co?`<div class="jco">${co}</div>`:''}
+      <div class="jmeta">
+        ${loc?`<span class="jtag jtag-loc">📍 ${loc}</span>`:''}
+        ${type?`<span class="jtag jtag-type">${type}</span>`:''}
+        ${posted?`<span class="jtag">${posted}</span>`:''}
+      </div>
+      ${snip?`<div class="jsnippet">${snip}…</div>`:''}
+      <div class="jactions">
+        <button class="juse" onclick="useJob(${i})">⚡ Optimize for this role</button>
+        ${url!=='#'?`<a class="jview" href="${url}" target="_blank" rel="noopener">View ↗</a>`:''}
+      </div>
+      <div class="jnotice" id="jn${i}">✓ JD loaded — click Optimize above</div>
+    </div>`;
+  });
+  h+='</div>';
+  document.getElementById('jobs-out').innerHTML=h;
+}
+function renderJobsIndeed(items,q){
+  if(!items||!items.length){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">No jobs found for "${esc(q)}".</div>`; return; }
+  jobsData=items;
+  let h=`<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found</div><div class="jobs-grid">`;
+  items.forEach((j,i)=>{
+    const title=esc(j.positionName||j.title||'Untitled');
+    const co=esc(j.company||'');
+    const loc=esc(j.location||'');
+    const salary=j.salary?esc(j.salary):'';
+    const snip=esc((j.description||'').slice(0,200));
+    const url=j.externalApplyLink||j.url||'#';
+    const posted=esc(j.postedAt||'');
+    h+=`<div class="jcard" id="jc${i}">
+      <div class="jtitle">${title}</div>
+      ${co?`<div class="jco">${co}</div>`:''}
+      <div class="jmeta">
+        ${loc?`<span class="jtag jtag-loc">📍 ${loc}</span>`:''}
+        ${salary?`<span class="jtag">${salary}</span>`:''}
+        ${posted?`<span class="jtag">${posted}</span>`:''}
+      </div>
+      ${snip?`<div class="jsnippet">${snip}…</div>`:''}
+      <div class="jactions">
+        <button class="juse" onclick="useJob(${i})">⚡ Optimize for this role</button>
+        ${url!=='#'?`<a class="jview" href="${url}" target="_blank" rel="noopener">View ↗</a>`:''}
+      </div>
+      <div class="jnotice" id="jn${i}">✓ JD loaded — click Optimize above</div>
+    </div>`;
+  });
+  h+='</div>';
+  document.getElementById('jobs-out').innerHTML=h;
+}
+function useJob(i){
+  const j=jobsData[i]; if(!j) return;
+  const title=j.title||j.positionName||j.jobTitle||'';
+  const co=j.company||j.companyName||'';
+  const loc=j.location||j.jobLocation||'';
+  const desc=j.description||j.jobDescription||'';
+  const reqs=j.requirements||'';
+  const resps=j.responsibilities||'';
+  let txt='';
+  if(title) txt+=title+'\n';
+  if(co) txt+=co+'\n';
+  if(loc) txt+=loc+'\n';
+  txt+='\n';
+  if(desc) txt+=desc+'\n\n';
+  if(resps) txt+='Responsibilities:\n'+resps+'\n\n';
+  if(reqs) txt+='Requirements:\n'+reqs+'\n';
+  document.getElementById('jd-ta').value=txt.trim();
+  checkReady();
+  document.querySelectorAll('[id^="jn"]').forEach(n=>n.style.display='none');
+  const n=document.getElementById('jn'+i); if(n) n.style.display='block';
+  document.getElementById('opt-btn').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ── PROFILE FIT ──
+async function runFit(){
+  const jd=document.getElementById('jd-ta').value.trim();
+  const btn=document.getElementById('fit-btn');
+  btn.disabled=true; btn.innerHTML='<div class="spin"></div> Checking…';
+  clearErr();
+  try{
+    let profileCtx='';
+    if(fitTabMode==='manual'){
+      const pairs=[['Name','pf-name'],['Current Role','pf-title'],['Years Experience','pf-yoe'],['Location','pf-loc'],['Skills','pf-skills'],['Certifications','pf-certs'],['Notes','pf-extra']];
+      profileCtx=pairs.map(([l,id])=>{ const v=document.getElementById(id).value.trim(); return v?l+': '+v:''; }).filter(Boolean).join('\n');
+      const edu=document.getElementById('pf-edu').value;
+      const field=document.getElementById('pf-field').value.trim();
+      const visa=document.getElementById('pf-visa').value;
+      if(edu) profileCtx+='\nEducation: '+edu+(field?' in '+field:'');
+      if(visa) profileCtx+='\nWork Authorization: '+visa;
+    }
+    const src=resumeText.trim().length>50?`RESUME:\n"""\n${resumeText.trim().slice(0,5000)}\n"""\n`:'';
+    const prof=profileCtx?`CANDIDATE PROFILE:\n"""\n${profileCtx}\n"""\n`:'';
+    const data=await llm(
+`You are a senior recruiter. Assess candidate fit for this job — consider experience depth, seniority, education, hard requirements, location, career trajectory.
+Return ONLY valid minified JSON:
+{"overallScore":<0-100>,"verdict":"strong"|"good"|"partial"|"stretch"|"poor","dimensions":[{"label":"Experience Level","score":<0-100>,"note":"<12 words>"},{"label":"Technical Skills","score":<0-100>,"note":"<12 words>"},{"label":"Education","score":<0-100>,"note":"<12 words>"},{"label":"Industry Background","score":<0-100>,"note":"<12 words>"},{"label":"Location/Availability","score":<0-100>,"note":"<12 words>"},{"label":"Career Trajectory","score":<0-100>,"note":"<12 words>"}],"strengths":["<18 words max>"],"flags":["<18 words max>"],"recommendation":"<3-4 honest candid sentences>"}
+strengths: up to 5. flags: up to 5. Be honest about red flags.
+${src}${prof}JOB DESCRIPTION:\n"""\n${jd.slice(0,3000)}\n"""`, 1200);
+    renderFit(data);
+    document.getElementById('fit-results').style.display='block';
+    document.getElementById('fit-results').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    showErr('Fit check failed: '+e.message);
+  }finally{
+    btn.disabled=false; btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg> Check Fit';
+    checkReady();
+  }
+}
+function renderFit(d){
+  document.getElementById('fscore').textContent=(d.overallScore||0)+'%';
+  const pill=document.getElementById('fpill');
+  const vl={strong:'Strong Fit',good:'Good Fit',partial:'Partial Fit',stretch:'Stretch Role',poor:'Poor Fit'};
+  const v=(d.verdict||'partial').toLowerCase();
+  pill.textContent=vl[v]||d.verdict; pill.className='fpill '+v;
+  const grid=document.getElementById('fdims'); grid.innerHTML='';
+  const dc=s=>s>=75?'#2E8B6B':s>=50?'#B7791F':'#C0492F';
+  (d.dimensions||[]).forEach(dim=>{
+    const s=dim.score||0;
+    const el=document.createElement('div'); el.className='fdim';
+    el.innerHTML=`<div class="fdim-lbl">${esc(dim.label)}</div>
+      <div class="fdim-bar-bg"><div class="fdim-bar" style="width:0%;background:${dc(s)}" data-w="${s}"></div></div>
+      <div style="display:flex;justify-content:space-between;gap:4px;align-items:center">
+        <span style="font-family:var(--mono);font-size:13px;font-weight:700">${s}</span>
+        <span style="font-size:10px;color:var(--muted);text-align:right;max-width:110px">${esc(dim.note||'')}</span>
+      </div>`;
+    grid.appendChild(el);
+  });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    grid.querySelectorAll('.fdim-bar').forEach(b=>{ b.style.width=b.dataset.w+'%'; });
+  }));
+  document.getElementById('fstr').innerHTML=(d.strengths||[]).map(s=>`<li>${esc(s)}</li>`).join('');
+  document.getElementById('fflg').innerHTML=(d.flags||[]).map(f=>`<li>${esc(f)}</li>`).join('');
+  document.getElementById('frec').textContent=d.recommendation||'';
+}
+
+// ── OPTIMIZE ──
+async function runOptimize(){
+  const jd = document.getElementById('jd-ta').value.trim();
+  const resume = resumeText.trim().slice(0,6000);
+  const jdT = jd.slice(0,4000);
+  const btn = document.getElementById('opt-btn');
+  btn.disabled=true; btn.innerHTML='<div class="spin"></div> Analyzing…';
+  document.getElementById('results').style.display='none';
+  document.getElementById('err-box').classList.remove('show');
+  origScore=null;
+
+  try{
+    // ── Call 1: Analyze
+    setStatus('Step 1/2 — Scoring ATS match…','spin-dot');
+    analysisData = await llm(
+`You are a senior ATS resume analyst. Compare the RESUME against the JOB DESCRIPTION and return ONLY valid minified JSON — no markdown fences, no prose:
+{"atsScore":<integer 0-100>,"verdict":"<14 words max summary>","matchedKeywords":["..."],"missingKeywords":["..."],"gaps":[{"area":"<label>","fix":"<one sentence>"}]}
+matchedKeywords: up to 12 important JD skills/tools found in resume.
+missingKeywords: up to 12 important JD terms NOT in resume.
+gaps: up to 4 items with concrete fixes.
+RESUME:
+"""
+${resume}
+"""
+JOB DESCRIPTION:
+"""
+${jdT}
+"""`, 1200);
+
+    // ── Call 2: Tailor
+    setStatus('Step 2/2 — Rewriting bullets…','spin-dot');
+    const missing=(analysisData.missingKeywords||[]).join(', ');
+    tailorData = await llm(
+`You are an expert resume writer. From the RESUME, pick up to 5 high-impact bullets and rewrite them for the JOB DESCRIPTION. Also write a tailored 2-sentence professional summary.
+Return ONLY valid minified JSON — no markdown fences, no prose:
+{"summary":"<2 sentences>","bullets":[{"original":"<exact verbatim text from resume>","improved":"<rewrite ≤28 words starting with a strong verb>"}]}
+Rules: copy 'original' exactly as it appears. Never fabricate experience. Weave in missing keywords where truthful: ${missing}.
+RESUME:
+"""
+${resume}
+"""
+JOB DESCRIPTION:
+"""
+${jdT}
+"""`, 2000);
+
+    origScore=analysisData.atsScore;
+    renderResults(analysisData, tailorData);
+    setStatus('Done ✓','ok');
+  }catch(e){
+    setStatus('Error','err');
+    showErr(e.message);
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Optimize';
+    checkReady();
+  }
+}
+
+// ── RESCORE ──
+async function runRescore(){
+  const jd=document.getElementById('jd-ta').value.trim();
+  const edited=getExportText().slice(0,6000);
+  const btn=document.getElementById('rescore-btn');
+  btn.disabled=true; btn.innerHTML='<div class="spin dk"></div> Scoring…';
+  try{
+    const nd=await llm(
+`ATS analyst. Return ONLY valid minified JSON:
+{"atsScore":<0-100>,"verdict":"<14 words>","matchedKeywords":[],"missingKeywords":[],"gaps":[]}
+RESUME: """${edited}"""
+JOB DESCRIPTION: """${jd.slice(0,4000)}"""`,900);
+    const ns=nd.atsScore;
+    const delta=ns-origScore;
+    animGauge(ns);
+    document.getElementById('verdict').textContent=nd.verdict||'';
+    const dw=document.getElementById('delta-wrap'); dw.style.display='block';
+    const db=document.getElementById('delta');
+    if(delta>0){db.className='delta pos';db.textContent='+'+delta+' pts';}
+    else if(delta<0){db.className='delta neg';db.textContent=delta+' pts';}
+    else{db.className='delta zero';db.textContent='±0 pts';}
+    setStatus('Re-scored ✓','ok');
+  }catch(e){ showErr(e.message); }
+  finally{
+    btn.disabled=false;
+    btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Re-score';
+  }
+}
+
+// ── RENDER RESULTS ──
+function renderResults(an, ta){
+  document.getElementById('results').style.display='block';
+  document.getElementById('delta-wrap').style.display='none';
+  animGauge(an.atsScore||0);
+  document.getElementById('verdict').textContent=an.verdict||'';
+  document.getElementById('kw-match').innerHTML=(an.matchedKeywords||[]).map(k=>`<span class="chip chip-g">${esc(k)}</span>`).join('');
+  document.getElementById('kw-miss').innerHTML=(an.missingKeywords||[]).map(k=>`<span class="chip chip-c">+ ${esc(k)}</span>`).join('');
+  document.getElementById('gaps').innerHTML=(an.gaps||[]).map(g=>
+    `<div class="gap-item"><div class="gap-area">${esc(g.area)}</div><div class="gap-fix">${esc(g.fix)}</div></div>`).join('');
+  document.getElementById('sum-text').textContent=ta.summary||'';
+  bulletItems=[];
+  const bl=document.getElementById('bullets'); bl.innerHTML='';
+  (ta.bullets||[]).forEach((b,i)=>{
+    const ok=resumeText.includes(b.original);
+    bulletItems.push({original:b.original,improved:b.improved,canLocate:ok,include:ok});
+    const d=document.createElement('div');
+    d.className='bul-item'+(ok?'':' dim'); d.id='bi'+i;
+    d.innerHTML=`<div class="bul-before">${esc(b.original)}</div>
+      <div class="bul-arrow">↓ improved</div>
+      <div class="bul-after">${esc(b.improved)}</div>
+      <div class="bul-ctrls">
+        ${ok?`<label class="bul-inc"><input type="checkbox" checked id="binc${i}" onchange="bulletItems[${i}].include=this.checked"> Include in export</label>`
+            :`<span class="loc-warn">⚠ couldn't auto-locate — copy manually</span>`}
+        <button class="bul-copy" onclick="copyBul(${i})">Copy</button>
+      </div>`;
+    bl.appendChild(d);
+  });
+  document.getElementById('rescore-btn').disabled=false;
+  document.getElementById('exp-btn').disabled=false;
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── GAUGE ──
+function animGauge(score){
+  const arc=document.getElementById('garc'), num=document.getElementById('gnum');
+  arc.style.stroke=score<50?'#C0492F':score<75?'#B7791F':'#2E8B6B';
+  arc.style.strokeDashoffset=339.3-(score/100)*339.3;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){num.textContent=score;return;}
+  const from=parseInt(num.textContent)||0, t0=performance.now();
+  (function step(now){
+    const t=Math.min((now-t0)/900,1);
+    num.textContent=Math.round(from+(score-from)*(1-Math.pow(1-t,3)));
+    if(t<1) requestAnimationFrame(step);
+  })(t0);
+}
+
+// ── COPY BULLET ──
+function copyBul(i){
+  navigator.clipboard.writeText(bulletItems[i].improved).catch(()=>{});
+  const b=document.querySelector('#bi'+i+' .bul-copy');
+  const orig=b.textContent; b.textContent='Copied!';
+  setTimeout(()=>b.textContent=orig,1500);
+}
+
+// ── EXPORT TEXT ──
+function getExportText(){
+  let t=resumeText;
+  if(document.getElementById('sum-inc').checked&&tailorData&&tailorData.summary){
+    const sw=['summary','profile','objective','about'];
+    const lines=t.split('\n'); let inS=false;
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i].trim().toLowerCase();
+      if(sw.some(w=>l===w||l.startsWith(w+' '))){inS=true;continue;}
+      if(inS&&l.length>0&&!/^[•\-*]/.test(l)){lines[i]=tailorData.summary;t=lines.join('\n');break;}
+    }
+  }
+  bulletItems.forEach(b=>{ if(b.include&&b.canLocate) t=t.replace(b.original,b.improved); });
+  return t;
+}
+
+// ── EXPORT DOCX ──
+async function exportDocx(){
+  const lines=getExportText().split('\n');
+  const xe=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  const SW=['summary','profile','experience','education','skills','certifications','projects','awards','languages','publications','volunteer','references','objective','about'];
+  const isC=l=>/[@|]/.test(l)||/\b(linkedin|github|\.com|phone|tel|\+\d)\b/i.test(l);
+  const isH=l=>{ const t=l.trim(); if(!t||t.length>=46)return false; if(t===t.toUpperCase()&&t.length>2)return true; const lo=t.toLowerCase(); return SW.some(w=>lo===w||lo.startsWith(w+':')||lo.startsWith(w+' ')); };
+  const isB=l=>/^[•\-*▪–]/.test(l.trim());
+  const rpr=(b,sz,c)=>`<w:rPr>${b?'<w:b/>':''}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/><w:color w:val="${c}"/><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/></w:rPr>`;
+  let xml='', first=true;
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line){xml+=`<w:p><w:pPr><w:spacing w:after="60"/></w:pPr></w:p>`;continue;}
+    if(first){first=false;xml+=`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r>${rpr(true,30,'1F3864')}<w:t xml:space="preserve">${xe(line)}</w:t></w:r></w:p>`;}
+    else if(isC(line)){xml+=`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r>${rpr(false,18,'777777')}<w:t xml:space="preserve">${xe(line)}</w:t></w:r></w:p>`;}
+    else if(isH(line)){xml+=`<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="1" w:color="1F3864"/></w:pBdr><w:spacing w:before="200"/></w:pPr><w:r>${rpr(true,24,'1F3864')}<w:t xml:space="preserve">${xe(line)}</w:t></w:r></w:p>`;}
+    else if(isB(line)){xml+=`<w:p><w:pPr><w:ind w:left="360" w:hanging="200"/></w:pPr><w:r>${rpr(false,18,'333333')}<w:t xml:space="preserve">•  ${xe(line.replace(/^[•\-*▪–]\s*/,''))}</w:t></w:r></w:p>`;}
+    else{xml+=`<w:p><w:r>${rpr(false,18,'333333')}<w:t xml:space="preserve">${xe(line)}</w:t></w:r></w:p>`;}
+  }
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`);
+  zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+  zip.file('word/document.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:sectPr><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>${xml}</w:body></w:document>`);
+  const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='tailored-resume.docx'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+// ── UTILS ──
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+checkReady();
+</script>
+</body>
+</html>
