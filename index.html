@@ -240,6 +240,33 @@ textarea:focus{border-color:var(--navy);background:#fff}
 .loc-warn{font-size:11px;color:var(--coral);font-family:var(--mono);font-style:italic}
 .exp-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
+/* SECTION BLOCKS */
+.section-block{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 20px 24px;margin-bottom:20px}
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+
+/* JOB CARDS — new expandable style */
+.jcard{background:var(--white);border:1px solid var(--hairline);border-radius:var(--r);overflow:hidden;transition:box-shadow .15s}
+.jcard:hover{box-shadow:0 2px 8px rgba(19,32,59,.1)}
+.jcard-top{padding:14px 16px;display:flex;gap:14px;align-items:flex-start;cursor:pointer}
+.jcard-top:hover .jtitle{color:var(--teal)}
+.jcard-left{flex:1;min-width:0}
+.jcard-arrow{font-size:18px;color:var(--muted);flex-shrink:0;transition:transform .2s;line-height:1;margin-top:2px}
+.jcard.expanded .jcard-arrow{transform:rotate(180deg)}
+.jcard-body{display:none;padding:0 16px 14px;border-top:1px solid var(--hairline)}
+.jcard.expanded .jcard-body{display:block}
+.jcard-jd{background:var(--bg);border-radius:4px;padding:12px 14px;font-size:12.5px;color:var(--ink);line-height:1.6;max-height:220px;overflow-y:auto;margin-bottom:12px;white-space:pre-wrap}
+.jcard-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* JOBS GRID */
+.jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+
+/* JD card */
+#jd-ta{min-height:240px}
+
+/* FIT results hidden initially */
+#fit-results{display:none}
+
+/* SPINNER */
 /* SPINNER */
 .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;flex-shrink:0}
 .spin.dk{border-color:var(--hairline);border-top-color:var(--navy)}
@@ -274,62 +301,23 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   </div>
 </div>
 
-<!-- INPUTS -->
-<div class="grid2">
-  <div class="card" id="resume-card">
-    <div class="card-hd">
-      <span class="card-title">Resume</span>
-      <div class="tabs" id="res-tabs">
-        <button class="tbtn on" onclick="switchTab('res','up')">Upload</button>
-        <button class="tbtn" onclick="switchTab('res','paste')">Paste</button>
-      </div>
+<!-- ── SECTION 1: JOB LISTINGS ── -->
+<div class="section-block">
+  <div class="section-hd">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="sec-title">Jobs For You</span>
+      <span class="badge badge-teal">Sydney &amp; Melbourne · AI-matched</span>
     </div>
-    <div class="tpane on" id="res-up-pane">
-      <div class="dropzone" id="dropzone"
-        ondragover="event.preventDefault();this.classList.add('over')"
-        ondragleave="this.classList.remove('over')"
-        ondrop="onDrop(event)">
-        <input type="file" accept=".docx" onchange="onFile(this.files[0])">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <div class="drop-lbl"><strong>Click to upload</strong> or drag & drop<br><span style="font-size:11px">Supports .docx</span></div>
-        <div class="drop-name" id="drop-name"></div>
-      </div>
-    </div>
-    <div class="tpane" id="res-paste-pane">
-      <textarea id="res-ta" placeholder="Paste your resume text here…" rows="9" oninput="onResumeChange()"></textarea>
-    </div>
-    <div class="pnote">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      Sent to AI for analysis. Nothing stored.
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><span class="card-title">Job Description</span></div>
-    <div class="tpane on">
-      <textarea id="jd-ta" placeholder="Paste the full job description here…" rows="10" oninput="checkReady()"></textarea>
-    </div>
-    <div class="pnote">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      Sent to AI for analysis. Nothing stored.
-    </div>
-  </div>
-</div>
-
-<!-- RELATED JOBS -->
-<div class="rj-section">
-  <div class="rj-header">
-    <div style="display:flex;align-items:center;gap:10px">
-      <span class="sec-title">Related Jobs</span>
-      <span class="badge badge-teal">Apify · AI-matched</span>
-    </div>
-    <div class="rj-controls">
-      <input class="loc-input" type="text" id="jobs-loc" placeholder="📍 Location (optional)">
-      <button class="btn btn-teal" id="jobs-btn" onclick="searchJobs()" disabled style="padding:9px 18px;font-size:13px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <input class="loc-input" type="text" id="jobs-loc" placeholder="📍 City (e.g. Sydney)" value="Sydney">
+      <button class="btn btn-teal" id="jobs-btn" onclick="searchJobs()" disabled style="padding:8px 16px;font-size:13px">
         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
         Find Jobs
       </button>
     </div>
   </div>
+
+  <!-- pills -->
   <div class="pills-strip" id="pills-strip">
     <div class="pills-hd">
       <span>Searching based on your resume</span>
@@ -340,16 +328,128 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     </div>
     <input class="pill-input" id="pill-input" placeholder="type & Enter" onkeydown="commitPill(event)" onblur="cancelPill()">
   </div>
+
   <div id="jobs-out">
     <div class="jobs-empty">
       <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-      Upload or paste your resume — Tailor will automatically match and search live jobs for you.
+      Upload your resume — Tailor will auto-match and search live jobs around Sydney &amp; Melbourne.
     </div>
   </div>
 </div>
 
-<!-- PROFILE FIT -->
-<div class="fit-section">
+<!-- ── SECTION 2: RESUME + JD ── -->
+<div class="section-block">
+  <div class="section-hd" style="margin-bottom:12px">
+    <span class="sec-title">Resume &amp; Job Description</span>
+    <span style="font-size:12px;color:var(--muted)">Click a job above to pre-fill the JD</span>
+  </div>
+  <div class="grid2">
+    <!-- Resume -->
+    <div class="card" id="resume-card">
+      <div class="card-hd">
+        <span class="card-title">Resume</span>
+        <div class="tabs" id="res-tabs">
+          <button class="tbtn on" onclick="switchTab('res','up')">Upload</button>
+          <button class="tbtn" onclick="switchTab('res','paste')">Paste</button>
+        </div>
+      </div>
+      <div class="tpane on" id="res-up-pane">
+        <div class="dropzone" id="dropzone"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="onDrop(event)">
+          <input type="file" accept=".docx" onchange="onFile(this.files[0])">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <div class="drop-lbl"><strong>Click to upload</strong> or drag &amp; drop<br><span style="font-size:11px">Supports .docx</span></div>
+          <div class="drop-name" id="drop-name"></div>
+        </div>
+      </div>
+      <div class="tpane" id="res-paste-pane">
+        <textarea id="res-ta" placeholder="Paste your resume text here…" rows="9" oninput="onResumeChange()"></textarea>
+      </div>
+      <div class="pnote">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Sent to AI for analysis. Nothing stored.
+      </div>
+    </div>
+
+    <!-- Job Description -->
+    <div class="card" id="jd-card">
+      <div class="card-hd">
+        <span class="card-title">Job Description</span>
+        <span id="jd-source-tag" style="font-size:10px;font-family:var(--mono);color:var(--teal);display:none">✓ pre-filled from job listing</span>
+      </div>
+      <div class="tpane on">
+        <textarea id="jd-ta" placeholder="Click a job card above to auto-fill, or paste a JD manually here…" rows="10" oninput="onJdChange()"></textarea>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:8px 16px;border-top:1px solid var(--hairline)">
+        <div class="pnote" style="border:none;padding:0">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Sent to AI for analysis. Nothing stored.
+        </div>
+        <button id="jd-clear-btn" onclick="clearJD()" style="display:none;font-size:11px;font-family:var(--mono);background:none;border:none;color:var(--coral);cursor:pointer;padding:0">✕ clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Row -->
+  <div class="action-row">
+    <button class="btn btn-navy" id="opt-btn" disabled onclick="runOptimize()">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Optimize Resume
+    </button>
+    <div class="status" id="status-line">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-txt">Upload your resume and select or paste a job description</span>
+    </div>
+  </div>
+
+  <!-- Error Box -->
+  <div class="err-box" id="err-box"></div>
+
+  <!-- ATS Results -->
+  <div id="results">
+    <div class="res-grid">
+      <div class="gauge-card">
+        <div class="gauge-lbl">ATS Match Score</div>
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+            <circle class="gtrack" cx="70" cy="70" r="54"/>
+            <circle class="garc" id="garc" cx="70" cy="70" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+          </svg>
+          <div class="gnum"><span id="gnum">0</span><small>/ 100</small></div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <div id="delta-wrap" style="display:none"><span class="delta" id="delta"></span></div>
+      </div>
+      <div class="kw-card">
+        <div class="eyebrow">Keyword Analysis</div>
+        <div class="kw-grp"><div class="kw-grp-lbl">✓ Matched</div><div class="chips" id="kw-match"></div></div>
+        <div class="kw-grp"><div class="kw-grp-lbl">+ Missing</div><div class="chips" id="kw-miss"></div></div>
+      </div>
+    </div>
+    <div class="gap-card"><div class="eyebrow">Gaps &amp; Fixes</div><div id="gaps"></div></div>
+    <div class="sum-card">
+      <div class="eyebrow">Tailored Summary</div>
+      <div class="sum-text" id="sum-text"></div>
+      <div class="chk-row"><input type="checkbox" id="sum-inc" checked><label for="sum-inc">Include in export</label></div>
+    </div>
+    <div class="bul-card"><div class="eyebrow">Rewritten Bullets</div><div id="bullets"></div></div>
+    <div class="exp-row">
+      <button class="btn btn-navy" id="exp-btn" disabled onclick="exportDocx()">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export .docx
+      </button>
+      <button class="btn btn-outline" id="rescore-btn" disabled onclick="runRescore()" style="padding:9px 18px;font-size:13px">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Re-score
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 3: PROFILE FIT ── -->
+<div class="section-block">
   <div class="fit-hd">
     <div style="display:flex;align-items:center;gap:10px">
       <span class="sec-title">Profile Fit Check</span>
@@ -371,7 +471,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <div class="tpane on" id="fit-auto-pane">
       <div class="pnote-info">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span>AI will extract your profile from your resume and compare it against the job requirements. Upload or paste your resume first, then click <strong>Check Fit</strong>.</span>
+        <span>AI will extract your profile from your resume and compare it against the job requirements. Upload your resume first, then click <strong>Check Fit</strong>.</span>
       </div>
     </div>
     <div class="tpane" id="fit-manual-pane">
@@ -396,76 +496,21 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
       <div class="phint">Blank fields are inferred from your resume if provided.</div>
     </div>
   </div>
-</div>
 
-<!-- FIT RESULTS -->
-<div id="fit-results">
-  <div class="fcard">
-    <div class="fcard-hd">
-      <div><div class="fscore" id="fscore">—</div><div class="fscore-lbl">Profile Fit Score</div></div>
-      <span class="fpill" id="fpill">—</span>
-    </div>
-    <div class="fdims" id="fdims"></div>
-    <div class="fbody">
-      <div><div class="fcol-ttl g">✓ Strengths</div><ul class="flist str" id="fstr"></ul></div>
-      <div><div class="fcol-ttl r">! Flags</div><ul class="flist flg" id="fflg"></ul></div>
-    </div>
-    <div class="frec"><strong>Recommendation</strong><span id="frec"></span></div>
-  </div>
-</div>
-
-<!-- ACTION ROW -->
-<div class="action-row">
-  <button class="btn btn-navy" id="opt-btn" disabled onclick="runOptimize()">
-    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-    Optimize
-  </button>
-  <div class="status" id="status-line">
-    <span class="dot" id="status-dot"></span>
-    <span id="status-txt">Upload your resume and paste a job description to begin</span>
-  </div>
-</div>
-
-<!-- ERROR BOX -->
-<div class="err-box" id="err-box"></div>
-
-<!-- ATS RESULTS -->
-<div id="results">
-  <div class="res-grid">
-    <div class="gauge-card">
-      <div class="gauge-lbl">ATS Match Score</div>
-      <div class="gauge-wrap">
-        <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
-          <circle class="gtrack" cx="70" cy="70" r="54"/>
-          <circle class="garc" id="garc" cx="70" cy="70" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
-        </svg>
-        <div class="gnum"><span id="gnum">0</span><small>/ 100</small></div>
+  <!-- Fit Results -->
+  <div id="fit-results" style="margin-top:16px">
+    <div class="fcard">
+      <div class="fcard-hd">
+        <div><div class="fscore" id="fscore">—</div><div class="fscore-lbl">Profile Fit Score</div></div>
+        <span class="fpill" id="fpill">—</span>
       </div>
-      <div class="verdict" id="verdict"></div>
-      <div id="delta-wrap" style="display:none"><span class="delta" id="delta"></span></div>
+      <div class="fdims" id="fdims"></div>
+      <div class="fbody">
+        <div><div class="fcol-ttl g">✓ Strengths</div><ul class="flist str" id="fstr"></ul></div>
+        <div><div class="fcol-ttl r">! Flags</div><ul class="flist flg" id="fflg"></ul></div>
+      </div>
+      <div class="frec"><strong>Recommendation</strong><span id="frec"></span></div>
     </div>
-    <div class="kw-card">
-      <div class="eyebrow">Keyword Analysis</div>
-      <div class="kw-grp"><div class="kw-grp-lbl">✓ Matched</div><div class="chips" id="kw-match"></div></div>
-      <div class="kw-grp"><div class="kw-grp-lbl">+ Missing</div><div class="chips" id="kw-miss"></div></div>
-    </div>
-  </div>
-  <div class="gap-card"><div class="eyebrow">Gaps &amp; Fixes</div><div id="gaps"></div></div>
-  <div class="sum-card">
-    <div class="eyebrow">Tailored Summary</div>
-    <div class="sum-text" id="sum-text"></div>
-    <div class="chk-row"><input type="checkbox" id="sum-inc" checked><label for="sum-inc">Include in export</label></div>
-  </div>
-  <div class="bul-card"><div class="eyebrow">Rewritten Bullets</div><div id="bullets"></div></div>
-  <div class="exp-row">
-    <button class="btn btn-navy" id="exp-btn" disabled onclick="exportDocx()">
-      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-      Export .docx
-    </button>
-    <button class="btn btn-outline" id="rescore-btn" disabled onclick="runRescore()" style="padding:9px 18px;font-size:13px">
-      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-      Re-score
-    </button>
   </div>
 </div>
 
@@ -554,6 +599,21 @@ function checkReady(){
   setStatus(ready ? 'Ready — click Optimize' : (hasR ? 'Paste a job description to continue' : 'Upload or paste your resume to begin'), '');
 }
 
+function onJdChange(){
+  checkReady();
+  // If user manually edits, hide pre-fill tag
+  const tag = document.getElementById('jd-source-tag');
+  if(tag) tag.style.display='none';
+  const clr = document.getElementById('jd-clear-btn');
+  if(clr) clr.style.display='none';
+}
+function clearJD(){
+  document.getElementById('jd-ta').value='';
+  document.getElementById('jd-source-tag').style.display='none';
+  document.getElementById('jd-clear-btn').style.display='none';
+  checkReady();
+}
+
 // ── STATUS / ERROR ──
 function setStatus(msg, state){
   document.getElementById('status-txt').textContent = msg;
@@ -629,7 +689,7 @@ RESUME:
     if(data.location) pills.push({type:'loc',label:data.location});
     if(data.availability) pills.push({type:'avail',label:data.availability});
     if(!document.getElementById('jobs-loc').value.trim() && data.location)
-      document.getElementById('jobs-loc').value = data.location;
+      if(!document.getElementById('jobs-loc').value.trim()) document.getElementById('jobs-loc').value = data.location || 'Sydney';
     renderPills();
     if(document.getElementById('apify-key').value.trim()) searchJobs();
   }catch(e){
@@ -734,23 +794,32 @@ function renderJobs(items,q){
     const co=esc(j.company||j.companyName||'');
     const loc=esc(j.location||j.jobLocation||'');
     const type=esc(j.jobType||j.employmentType||'');
-    const snip=esc((j.description||j.snippet||'').slice(0,200));
-    const url=j.applyLink||j.url||j.jobUrl||'#';
+    const fullDesc=esc((j.description||j.jobDescription||'(No description available)'));
+    const url=j.applyLink||j.url||j.jobUrl||'';
     const posted=esc(j.datePosted||j.postedAt||'');
+    const salary=esc(j.salary||'');
     h+=`<div class="jcard" id="jc${i}">
-      <div class="jtitle">${title}</div>
-      ${co?`<div class="jco">${co}</div>`:''}
-      <div class="jmeta">
-        ${loc?`<span class="jtag jtag-loc">📍 ${loc}</span>`:''}
-        ${type?`<span class="jtag jtag-type">${type}</span>`:''}
-        ${posted?`<span class="jtag">${posted}</span>`:''}
+      <div class="jcard-top" onclick="toggleJob(${i})">
+        <div class="jcard-left">
+          <div class="jtitle">${title}</div>
+          ${co?`<div class="jco" style="margin-top:2px">${co}</div>`:''}
+          <div class="jmeta" style="margin-top:6px">
+            ${loc?`<span class="jtag jtag-loc">📍 ${loc}</span>`:''}
+            ${type?`<span class="jtag jtag-type">${type}</span>`:''}
+            ${salary?`<span class="jtag">${salary}</span>`:''}
+            ${posted?`<span class="jtag">${posted}</span>`:''}
+          </div>
+        </div>
+        <span class="jcard-arrow">⌄</span>
       </div>
-      ${snip?`<div class="jsnippet">${snip}…</div>`:''}
-      <div class="jactions">
-        <button class="juse" onclick="useJob(${i})">⚡ Optimize for this role</button>
-        ${url!=='#'?`<a class="jview" href="${url}" target="_blank" rel="noopener">View ↗</a>`:''}
+      <div class="jcard-body">
+        <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:12px 0 6px">Job Description</div>
+        <div class="jcard-jd">${fullDesc}</div>
+        <div class="jcard-actions">
+          <button class="juse" onclick="useJob(${i})">⚡ Use this JD &amp; Optimize</button>
+          ${url?`<a class="jview" href="${url}" target="_blank" rel="noopener">Apply ↗</a>`:''}
+        </div>
       </div>
-      <div class="jnotice" id="jn${i}">✓ JD loaded — click Optimize above</div>
     </div>`;
   });
   h+='</div>';
@@ -765,23 +834,30 @@ function renderJobsIndeed(items,q){
     const co=esc(j.company||'');
     const loc=esc(j.location||'');
     const salary=j.salary?esc(j.salary):'';
-    const snip=esc((j.description||'').slice(0,200));
-    const url=j.externalApplyLink||j.url||'#';
+    const fullDesc=esc((j.description||'(No description available)'));
+    const url=j.externalApplyLink||j.url||'';
     const posted=esc(j.postedAt||'');
     h+=`<div class="jcard" id="jc${i}">
-      <div class="jtitle">${title}</div>
-      ${co?`<div class="jco">${co}</div>`:''}
-      <div class="jmeta">
-        ${loc?`<span class="jtag jtag-loc">📍 ${loc}</span>`:''}
-        ${salary?`<span class="jtag">${salary}</span>`:''}
-        ${posted?`<span class="jtag">${posted}</span>`:''}
+      <div class="jcard-top" onclick="toggleJob(${i})">
+        <div class="jcard-left">
+          <div class="jtitle">${title}</div>
+          ${co?`<div class="jco" style="margin-top:2px">${co}</div>`:''}
+          <div class="jmeta" style="margin-top:6px">
+            ${loc?`<span class="jtag jtag-loc">📍 ${loc}</span>`:''}
+            ${salary?`<span class="jtag">${salary}</span>`:''}
+            ${posted?`<span class="jtag">${posted}</span>`:''}
+          </div>
+        </div>
+        <span class="jcard-arrow">⌄</span>
       </div>
-      ${snip?`<div class="jsnippet">${snip}…</div>`:''}
-      <div class="jactions">
-        <button class="juse" onclick="useJob(${i})">⚡ Optimize for this role</button>
-        ${url!=='#'?`<a class="jview" href="${url}" target="_blank" rel="noopener">View ↗</a>`:''}
+      <div class="jcard-body">
+        <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:12px 0 6px">Job Description</div>
+        <div class="jcard-jd">${fullDesc}</div>
+        <div class="jcard-actions">
+          <button class="juse" onclick="useJob(${i})">⚡ Use this JD &amp; Optimize</button>
+          ${url?`<a class="jview" href="${url}" target="_blank" rel="noopener">Apply ↗</a>`:''}
+        </div>
       </div>
-      <div class="jnotice" id="jn${i}">✓ JD loaded — click Optimize above</div>
     </div>`;
   });
   h+='</div>';
@@ -804,10 +880,22 @@ function useJob(i){
   if(resps) txt+='Responsibilities:\n'+resps+'\n\n';
   if(reqs) txt+='Requirements:\n'+reqs+'\n';
   document.getElementById('jd-ta').value=txt.trim();
+  // Show pre-fill indicator
+  const tag=document.getElementById('jd-source-tag');
+  if(tag){ tag.textContent='✓ pre-filled: '+esc(title.slice(0,40)); tag.style.display='inline'; }
+  const clr=document.getElementById('jd-clear-btn');
+  if(clr) clr.style.display='inline';
   checkReady();
-  document.querySelectorAll('[id^="jn"]').forEach(n=>n.style.display='none');
-  const n=document.getElementById('jn'+i); if(n) n.style.display='block';
-  document.getElementById('opt-btn').scrollIntoView({behavior:'smooth',block:'center'});
+  // Scroll to resume/JD section
+  document.getElementById('jd-card').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function toggleJob(i){
+  const card=document.getElementById('jc'+i);
+  if(!card) return;
+  const wasOpen=card.classList.contains('expanded');
+  // Close all
+  document.querySelectorAll('.jcard.expanded').forEach(c=>c.classList.remove('expanded'));
+  if(!wasOpen) card.classList.add('expanded');
 }
 
 // ── PROFILE FIT ──
@@ -1063,6 +1151,8 @@ async function exportDocx(){
 // ── UTILS ──
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+// Default location to Sydney
+if(!document.getElementById('jobs-loc').value) document.getElementById('jobs-loc').value='Sydney';
 checkReady();
 </script>
 </body>
