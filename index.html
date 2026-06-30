@@ -595,7 +595,7 @@ function checkReady(){
   const ready = hasR && hasJ;
   document.getElementById('opt-btn').disabled = !ready;
   document.getElementById('fit-btn').disabled = !ready;
-  document.getElementById('jobs-btn').disabled = !hasR;
+  document.getElementById('jobs-btn').disabled = false; // always allow manual search
   setStatus(ready ? 'Ready — click Optimize' : (hasR ? 'Paste a job description to continue' : 'Upload or paste your resume to begin'), '');
 }
 
@@ -669,31 +669,57 @@ function safeJSON(raw){
 // ── PILLS / AUTO-EXTRACT ──
 async function extractPills(){
   const key = document.getElementById('api-key').value.trim();
-  if(!key) return; // wait until user adds key
   const strip = document.getElementById('pills-strip');
   const row = document.getElementById('pills-row');
   strip.classList.add('show');
+
+  // If no API key, show manual add option immediately
+  if(!key){
+    row.innerHTML = '<span style="font-size:11px;color:var(--muted)">Add your Anthropic key in ⚙ Settings for auto-extract, or add roles manually:</span> <button class="pill-add" onclick="startAddPill()">+ add role</button>';
+    document.getElementById('jobs-btn').disabled = false;
+    return;
+  }
+
   row.innerHTML = '<span style="font-size:11px;color:var(--muted);font-family:var(--mono);display:flex;align-items:center;gap:6px"><span class="spin dk" style="width:10px;height:10px;border-width:1.5px"></span> Reading resume…</span>';
+
   try{
-    const data = await llm(
-`Analyse this resume and return ONLY valid minified JSON — no prose, no markdown:
-{"roles":["<best job title 1>","<best job title 2>","<best job title 3>"],"skills":["<skill1>","<skill2>","<skill3>","<skill4>"],"location":"<city/region or empty>","availability":"<open to work|actively looking|passively looking>"}
-roles = 3 realistic titles to search for, ordered best-fit to aspirational.
-skills = 4 most marketable specific skills (tools/languages/methods).
-location = city or region from resume header only, no country suffix.
+    // Use a simple, short prompt to minimise token usage and parse risk
+    const prompt = `Extract job search info from this resume. Reply with ONLY a JSON object, nothing else before or after:
+{"roles":["role1","role2","role3"],"skills":["skill1","skill2","skill3","skill4"],"location":"city only or empty string"}
+
 RESUME:
-"""${resumeText.trim().slice(0,3000)}"""`, 400);
-    pills=[];
-    (data.roles||[]).forEach(r=>pills.push({type:'role',label:r}));
-    (data.skills||[]).forEach(s=>pills.push({type:'skill',label:s}));
-    if(data.location) pills.push({type:'loc',label:data.location});
-    if(data.availability) pills.push({type:'avail',label:data.availability});
-    if(!document.getElementById('jobs-loc').value.trim() && data.location)
-      if(!document.getElementById('jobs-loc').value.trim()) document.getElementById('jobs-loc').value = data.location || 'Sydney';
+"""
+${resumeText.trim().slice(0,2500)}
+"""`;
+
+    const data = await llm(prompt, 600);
+
+    pills = [];
+    const roles = Array.isArray(data.roles) ? data.roles.filter(r=>r&&r.length>1&&!r.includes('<')) : [];
+    const skills = Array.isArray(data.skills) ? data.skills.filter(s=>s&&s.length>1&&!s.includes('<')) : [];
+
+    roles.forEach(r => pills.push({type:'role', label:r}));
+    skills.forEach(s => pills.push({type:'skill', label:s}));
+    if(data.location && !data.location.includes('<')) pills.push({type:'loc', label:data.location});
+
+    if(pills.length === 0) throw new Error('No pills extracted');
+
+    // Pre-fill location field
+    const locPill = pills.find(p=>p.type==='loc');
+    const locField = document.getElementById('jobs-loc');
+    if(locPill && !locField.value.trim()) locField.value = locPill.label;
+
     renderPills();
+    document.getElementById('jobs-btn').disabled = false;
+
+    // Auto-search if Apify key present
     if(document.getElementById('apify-key').value.trim()) searchJobs();
+
   }catch(e){
-    row.innerHTML = '<span style="font-size:11px;color:var(--muted)">Could not extract — add your Anthropic key in ⚙ Settings, then click Find Jobs.</span><button class="pill-add" onclick="startAddPill()">+ add</button>';
+    // Fallback: show manual entry — don't block the user
+    console.warn('extractPills failed:', e.message);
+    row.innerHTML = '<span style="font-size:11px;color:var(--muted)">Auto-extract failed — add roles manually or click Find Jobs after adding a pill:</span> <button class="pill-add" onclick="startAddPill()">+ add role</button>';
+    document.getElementById('jobs-btn').disabled = false;
   }
 }
 async function reExtract(){ pillsExtracted=false; pills=[]; pillsExtracted=true; await extractPills(); }
@@ -728,8 +754,19 @@ async function searchJobs(){
   const roles=pills.filter(p=>p.type==='role').map(p=>p.label);
   const skills=pills.filter(p=>p.type==='skill').map(p=>p.label);
   const pillLoc=pills.find(p=>p.type==='loc');
-  if(!roles.length&&!skills.length){ document.getElementById('jobs-out').innerHTML='<div class="jobs-err">No roles/skills found. Upload your resume or add pills manually.</div>'; return; }
-  const primaryRole=roles[0]||skills[0];
+  // Fallback: if no pills, derive a basic query from resume text
+  if(!roles.length && !skills.length){
+    if(resumeText.trim().length > 50){
+      // grab first non-empty line of resume as a rough title guess
+      const firstLine = resumeText.trim().split('\n').map(l=>l.trim()).filter(l=>l.length>3&&l.length<60)[1]||'professional';
+      pills.push({type:'role', label:firstLine});
+      renderPills();
+    } else {
+      document.getElementById('jobs-out').innerHTML='<div class="jobs-err">No roles found. Upload your resume or click <strong>+ add</strong> above to add a job title manually.</div>';
+      return;
+    }
+  }
+  const primaryRole=roles[0]||skills[0]||pills[0]?.label||'professional';
   const skillHint=skills.slice(0,2).join(' ');
   const q=skillHint?`${primaryRole} ${skillHint}`:primaryRole;
   const loc=location||(pillLoc&&pillLoc.label)||'';
