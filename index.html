@@ -306,7 +306,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   <div class="section-hd">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="sec-title">Jobs For You</span>
-      <span class="badge badge-teal">Sydney &amp; Melbourne · AI-matched</span>
+      <span class="badge badge-teal">seek.com.au · AI-matched</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <input class="loc-input" type="text" id="jobs-loc" placeholder="📍 City (e.g. Sydney)" value="Sydney">
@@ -773,52 +773,46 @@ async function searchJobs(){
   const btn=document.getElementById('jobs-btn');
   btn.disabled=true; btn.innerHTML='<div class="spin"></div> Searching…';
   document.getElementById('jobs-out').innerHTML='<div class="jobs-loading"><div class="spin dk"></div> Searching live jobs via Apify…</div>';
-  // Detect country code from location string for Indeed fallback
+  // ── Use SEEK scraper (seek.com.au) — Australia-native, location-accurate
+  // Detect NZ vs AU
   const locLower = loc.toLowerCase();
-  const countryCode = (locLower.includes('australia')||locLower.includes('sydney')||locLower.includes('melbourne')||locLower.includes('brisbane')||locLower.includes('perth')||locLower.includes('adelaide')||locLower.includes(' au'))
-    ? 'AU'
-    : (locLower.includes('uk')||locLower.includes('london')||locLower.includes('england')) ? 'GB'
-    : (locLower.includes('canada')||locLower.includes('toronto')||locLower.includes('vancouver')) ? 'CA'
-    : 'US';
-
-  // Build a location-aware query for Google Jobs
-  // Google Jobs scraper respects location best when it's baked into the query
-  const gQuery = loc ? `${q} jobs in ${loc}` : q;
+  const seekCountry = (locLower.includes('new zealand')||locLower.includes('auckland')||locLower.includes('wellington')||locLower.includes(' nz')) ? 'nz' : 'au';
+  // Normalise location for SEEK (lowercase, no punctuation)
+  const seekLoc = loc.toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim() || 'sydney';
 
   try{
-    const startR=await fetch(`https://api.apify.com/v2/acts/jupri~google-jobs-scraper/runs?token=${apifyKey}`,{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        queries: gQuery,
-        maxJobsPerQuery: 15,
-        languageCode: 'en',
-        countryCode: countryCode,
-        datePosted: 'month'
+    const startR = await fetch(`https://api.apify.com/v2/acts/haketa~seek-scraper/runs?token=${apifyKey}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        country: seekCountry,
+        keyword: primaryRole,
+        location: seekLoc,
+        workType: 'all',
+        workArrangement: 'all',
+        dateRange: '31',
+        scrapeDetails: false,
+        maxRecords: 15,
+        proxyConfiguration: { useApifyProxy: true }
       })
     });
-    if(!startR.ok) throw new Error('Actor unavailable');
-    const sd=await startR.json();
-    const runId=sd.data&&sd.data.id;
-    if(!runId) throw new Error('No run ID');
-    const items=await pollRun(runId,apifyKey);
-    // Filter results to keep only those matching the location (server may return mixed results)
-    const filtered = loc ? items.filter(j=>{
-      const jloc = (j.location||j.jobLocation||'').toLowerCase();
-      const locWords = loc.toLowerCase().split(/[\s,]+/).filter(w=>w.length>2);
-      return locWords.some(w=>jloc.includes(w)) || jloc==='' ;
-    }) : items;
-    renderJobs(filtered.length > 0 ? filtered : items, primaryRole, loc);
+    if(!startR.ok) throw new Error('SEEK actor unavailable (status '+startR.status+')');
+    const sd = await startR.json();
+    const runId = sd.data && sd.data.id;
+    if(!runId) throw new Error('No run ID from SEEK actor');
+    const items = await pollRun(runId, apifyKey);
+    renderJobsSeek(items, primaryRole, seekLoc);
   }catch(e){
-    try{ await jobsFallback(primaryRole,loc,countryCode,apifyKey); }
-    catch(e2){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">Job search failed: ${esc(e2.message||e.message)}. Check your Apify key in ⚙ Settings.</div>`; }
+    document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">Job search failed: ${esc(e.message)}. Make sure your Apify key is valid and has free credits.</div>`;
   }finally{
     btn.disabled=false; btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg> Find Jobs';
   }
 }
+// Legacy fallback kept for reference but not called
 async function jobsFallback(q,loc,countryCode,apifyKey){
   const startR=await fetch(`https://api.apify.com/v2/acts/misceres~indeed-scraper/runs?token=${apifyKey}`,{
     method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({position:q, country:countryCode||'AU', location:loc||'', maxItems:15, parseCompanyDetails:false, saveOnlyUniqueItems:true, followApplyRedirects:false})
+    body:JSON.stringify({position:q, country:countryCode||'AU', location:loc||'', maxItems:15})
   });
   if(!startR.ok) throw new Error('Fallback actor unavailable');
   const sd=await startR.json();
@@ -957,6 +951,54 @@ function toggleJob(i){
   // Close all
   document.querySelectorAll('.jcard.expanded').forEach(c=>c.classList.remove('expanded'));
   if(!wasOpen) card.classList.add('expanded');
+}
+
+// ── RENDER SEEK JOBS ──
+function renderJobsSeek(items, q, searchLoc){
+  if(!items||!items.length){
+    document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">No jobs found for "${esc(q)}" in ${esc(searchLoc)} on SEEK. Try different keywords or location.</div>`;
+    return;
+  }
+  jobsData = items;
+  let h = `<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found on <strong>seek.com.au</strong> near <strong>${esc(searchLoc)}</strong></div><div class="jobs-grid">`;
+  items.forEach((j, i) => {
+    // SEEK field names from haketa/seek-scraper
+    const title    = esc(j.title || j.jobTitle || 'Untitled');
+    const co       = esc(j.company || j.advertiser || '');
+    const loc      = esc(j.location || j.suburb || j.area || '');
+    const salary   = esc(j.salary || j.salaryRange || '');
+    const workType = esc(j.workType || j.employmentType || '');
+    const arrange  = esc(j.workArrangement || '');
+    const posted   = esc(j.listingDate || j.datePosted || j.postedAt || '');
+    const fullDesc = esc(j.description || j.teaser || j.snippet || '(Click to see full description on SEEK)');
+    const url      = j.applyUrl || j.jobUrl || j.url || j.link || '';
+    h += `<div class="jcard" id="jc${i}">
+      <div class="jcard-top" onclick="toggleJob(${i})">
+        <div class="jcard-left">
+          <div class="jtitle">${title}</div>
+          ${co ? `<div class="jco" style="margin-top:2px">${co}</div>` : ''}
+          <div class="jmeta" style="margin-top:6px">
+            ${loc ? `<span class="jtag jtag-loc">📍 ${loc}</span>` : ''}
+            ${workType ? `<span class="jtag jtag-type">${workType}</span>` : ''}
+            ${arrange && arrange!=='all' ? `<span class="jtag">${arrange}</span>` : ''}
+            ${salary ? `<span class="jtag" style="color:var(--green);background:#e8f6f1;border-color:#c3e6d8">💰 ${salary}</span>` : ''}
+            ${posted ? `<span class="jtag">${posted}</span>` : ''}
+          </div>
+        </div>
+        <span class="jcard-arrow">⌄</span>
+      </div>
+      <div class="jcard-body">
+        <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:12px 0 6px">Job Description</div>
+        <div class="jcard-jd">${fullDesc}</div>
+        <div class="jcard-actions">
+          <button class="juse" onclick="useJob(${i})">⚡ Use this JD &amp; Optimize</button>
+          ${url ? `<a class="jview" href="${url}" target="_blank" rel="noopener">Apply on SEEK ↗</a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  });
+  h += '</div>';
+  document.getElementById('jobs-out').innerHTML = h;
 }
 
 // ── PROFILE FIT ──
