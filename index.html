@@ -773,35 +773,59 @@ async function searchJobs(){
   const btn=document.getElementById('jobs-btn');
   btn.disabled=true; btn.innerHTML='<div class="spin"></div> Searching…';
   document.getElementById('jobs-out').innerHTML='<div class="jobs-loading"><div class="spin dk"></div> Searching live jobs via Apify…</div>';
+  // Detect country code from location string for Indeed fallback
+  const locLower = loc.toLowerCase();
+  const countryCode = (locLower.includes('australia')||locLower.includes('sydney')||locLower.includes('melbourne')||locLower.includes('brisbane')||locLower.includes('perth')||locLower.includes('adelaide')||locLower.includes(' au'))
+    ? 'AU'
+    : (locLower.includes('uk')||locLower.includes('london')||locLower.includes('england')) ? 'GB'
+    : (locLower.includes('canada')||locLower.includes('toronto')||locLower.includes('vancouver')) ? 'CA'
+    : 'US';
+
+  // Build a location-aware query for Google Jobs
+  // Google Jobs scraper respects location best when it's baked into the query
+  const gQuery = loc ? `${q} jobs in ${loc}` : q;
+
   try{
     const startR=await fetch(`https://api.apify.com/v2/acts/jupri~google-jobs-scraper/runs?token=${apifyKey}`,{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({queries:loc?`${q} ${loc}`:q, maxJobsPerQuery:12, languageCode:'en', datePosted:'month'})
+      body:JSON.stringify({
+        queries: gQuery,
+        maxJobsPerQuery: 15,
+        languageCode: 'en',
+        countryCode: countryCode,
+        datePosted: 'month'
+      })
     });
     if(!startR.ok) throw new Error('Actor unavailable');
     const sd=await startR.json();
     const runId=sd.data&&sd.data.id;
     if(!runId) throw new Error('No run ID');
     const items=await pollRun(runId,apifyKey);
-    renderJobs(items,primaryRole);
+    // Filter results to keep only those matching the location (server may return mixed results)
+    const filtered = loc ? items.filter(j=>{
+      const jloc = (j.location||j.jobLocation||'').toLowerCase();
+      const locWords = loc.toLowerCase().split(/[\s,]+/).filter(w=>w.length>2);
+      return locWords.some(w=>jloc.includes(w)) || jloc==='' ;
+    }) : items;
+    renderJobs(filtered.length > 0 ? filtered : items, primaryRole, loc);
   }catch(e){
-    try{ await jobsFallback(primaryRole,loc,apifyKey); }
+    try{ await jobsFallback(primaryRole,loc,countryCode,apifyKey); }
     catch(e2){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">Job search failed: ${esc(e2.message||e.message)}. Check your Apify key in ⚙ Settings.</div>`; }
   }finally{
     btn.disabled=false; btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg> Find Jobs';
   }
 }
-async function jobsFallback(q,loc,apifyKey){
+async function jobsFallback(q,loc,countryCode,apifyKey){
   const startR=await fetch(`https://api.apify.com/v2/acts/misceres~indeed-scraper/runs?token=${apifyKey}`,{
     method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({position:q,country:'US',location:loc||'',maxItems:12,parseCompanyDetails:false,saveOnlyUniqueItems:true,followApplyRedirects:false})
+    body:JSON.stringify({position:q, country:countryCode||'AU', location:loc||'', maxItems:15, parseCompanyDetails:false, saveOnlyUniqueItems:true, followApplyRedirects:false})
   });
   if(!startR.ok) throw new Error('Fallback actor unavailable');
   const sd=await startR.json();
   const runId=sd.data&&sd.data.id;
   if(!runId) throw new Error('No run ID');
   const items=await pollRun(runId,apifyKey);
-  renderJobsIndeed(items,q);
+  renderJobsIndeed(items,q,loc);
 }
 async function pollRun(runId,apifyKey,max=50000){
   const t0=Date.now();
@@ -822,10 +846,10 @@ async function pollRun(runId,apifyKey,max=50000){
   throw new Error('Timed out waiting for results');
 }
 let jobsData=[];
-function renderJobs(items,q){
+function renderJobs(items,q,searchLoc){
   if(!items||!items.length){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">No jobs found for "${esc(q)}". Try different pills or location.</div>`; return; }
   jobsData=items;
-  let h=`<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found</div><div class="jobs-grid">`;
+  let h=`<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found${searchLoc?' near <strong>'+esc(searchLoc)+'</strong>':''}</div><div class="jobs-grid">`;
   items.forEach((j,i)=>{
     const title=esc(j.title||j.jobTitle||'Untitled');
     const co=esc(j.company||j.companyName||'');
@@ -862,10 +886,10 @@ function renderJobs(items,q){
   h+='</div>';
   document.getElementById('jobs-out').innerHTML=h;
 }
-function renderJobsIndeed(items,q){
+function renderJobsIndeed(items,q,searchLoc){
   if(!items||!items.length){ document.getElementById('jobs-out').innerHTML=`<div class="jobs-err">No jobs found for "${esc(q)}".</div>`; return; }
   jobsData=items;
-  let h=`<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found</div><div class="jobs-grid">`;
+  let h=`<div class="jobs-count">${items.length} job${items.length!==1?'s':''} found${searchLoc?' near <strong>'+esc(searchLoc)+'</strong>':''}</div><div class="jobs-grid">`;
   items.forEach((j,i)=>{
     const title=esc(j.positionName||j.title||'Untitled');
     const co=esc(j.company||'');
