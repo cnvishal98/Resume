@@ -297,15 +297,32 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 
       <!-- UPLOAD PANE -->
       <div id="res-up-pane">
-        <label id="upload-label" style="display:block;border:2px dashed var(--hairline);border-radius:6px;padding:32px 20px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s">
-          <input type="file" id="resume-file-input" accept=".docx" style="display:none" onchange="onFile(this.files[0])">
-          <svg style="width:36px;height:36px;margin:0 auto 12px;display:block;color:var(--muted)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <!-- Hidden file input — triggered by button click -->
+        <input type="file" id="resume-file-input" accept=".docx"
+          style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;z-index:-1"
+          onchange="onFile(this.files[0])">
+
+        <!-- Drop zone div — click calls input.click() directly, no label magic -->
+        <div id="upload-dropzone"
+          style="border:2px dashed var(--hairline);border-radius:6px;padding:36px 20px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s"
+          onclick="document.getElementById('resume-file-input').click()">
+          <svg style="width:36px;height:36px;margin:0 auto 12px;display:block;color:var(--muted);pointer-events:none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
-          <div style="font-size:14px;color:var(--muted)"><strong style="color:var(--navy)">Click to upload</strong> or drag & drop</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Supports .docx files</div>
-          <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:8px;font-family:var(--mono);display:none"></div>
-        </label>
+          <div style="font-size:14px;color:var(--muted);pointer-events:none">
+            <strong style="color:var(--navy)">Click to choose file</strong> or drag & drop
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;pointer-events:none">Supports .docx files</div>
+          <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:8px;font-family:var(--mono);display:none;pointer-events:none"></div>
+        </div>
+
+        <!-- Fallback explicit button in case div click doesn't work -->
+        <div style="text-align:center;margin-top:10px">
+          <button onclick="document.getElementById('resume-file-input').click()"
+            style="background:var(--navy);color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--ui)">
+            Browse for .docx file
+          </button>
+        </div>
       </div>
 
       <!-- PASTE PANE -->
@@ -623,8 +640,7 @@ function switchResTab(tab){
 // ══ FILE HANDLING ══
 function onDrop(e){
   e.preventDefault();
-  const lbl = document.getElementById('upload-label');
-  if(lbl) lbl.style.borderColor = 'var(--hairline)';
+  // handled by event listener in init — this is legacy fallback
   onFile(e.dataTransfer.files[0]);
 }
 function onFile(file){
@@ -1370,21 +1386,22 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
   setStepState(0,'active');
 
   // Wire drag-and-drop to the upload label
-  const uploadLabel = document.getElementById('upload-label');
-  if(uploadLabel){
-    uploadLabel.addEventListener('dragover', e=>{
+  // Wire drag-and-drop to the upload dropzone div
+  const uploadDz = document.getElementById('upload-dropzone');
+  if(uploadDz){
+    uploadDz.addEventListener('dragover', e=>{
       e.preventDefault();
-      uploadLabel.style.borderColor='var(--navy)';
-      uploadLabel.style.background='#f0f4fd';
+      uploadDz.style.borderColor='var(--navy)';
+      uploadDz.style.background='#f0f4fd';
     });
-    uploadLabel.addEventListener('dragleave', ()=>{
-      uploadLabel.style.borderColor='var(--hairline)';
-      uploadLabel.style.background='var(--bg)';
+    uploadDz.addEventListener('dragleave', ()=>{
+      uploadDz.style.borderColor='var(--hairline)';
+      uploadDz.style.background='var(--bg)';
     });
-    uploadLabel.addEventListener('drop', e=>{
+    uploadDz.addEventListener('drop', e=>{
       e.preventDefault();
-      uploadLabel.style.borderColor='var(--hairline)';
-      uploadLabel.style.background='var(--bg)';
+      uploadDz.style.borderColor='var(--hairline)';
+      uploadDz.style.background='var(--bg)';
       onFile(e.dataTransfer.files[0]);
     });
   }
