@@ -267,42 +267,62 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
     <span class="step-chevron open" id="bc0">⌄</span>
   </div>
   <div class="step-body" id="bb0">
+
+    <!-- STORED STATE: shown after upload -->
     <div id="resume-stored-view" style="display:none">
       <div class="resume-stored">
         <div class="resume-stored-icon">✓</div>
-        <div>
+        <div style="flex:1">
           <div class="resume-stored-name" id="resume-stored-name"></div>
           <div class="resume-stored-meta" id="resume-stored-meta"></div>
-          <button class="btn-ghost" style="margin-top:6px" onclick="clearResume()">↺ Upload a different resume</button>
+          <button class="btn-ghost" style="margin-top:8px" onclick="clearResume()">↺ Replace resume</button>
         </div>
       </div>
       <div class="resume-preview" id="resume-preview" style="margin-top:14px"></div>
     </div>
+
+    <!-- UPLOAD STATE: shown before upload -->
     <div id="resume-upload-view">
-      <div class="tabs">
-        <button class="tbtn on" onclick="switchResTab('up')">Upload .docx</button>
-        <button class="tbtn" onclick="switchResTab('paste')">Paste text</button>
+      <!-- TAB SWITCHER -->
+      <div style="display:flex;gap:4px;margin-bottom:14px">
+        <button id="tab-up-btn" onclick="switchResTab('up')"
+          style="border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--mono);background:var(--navy);color:#fff">
+          Upload .docx
+        </button>
+        <button id="tab-paste-btn" onclick="switchResTab('paste')"
+          style="border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--mono);background:var(--bg);color:var(--muted)">
+          Paste text
+        </button>
       </div>
-      <div class="tpane on" id="res-up-pane">
-        <div class="dropzone" id="dropzone"
-          ondragover="event.preventDefault();this.classList.add('over')"
-          ondragleave="this.classList.remove('over')"
-          ondrop="onDrop(event)">
-          <input type="file" accept=".docx" onchange="onFile(this.files[0])">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <div class="drop-lbl"><strong>Click to upload</strong> or drag & drop<br><span style="font-size:11px;color:var(--muted)">Supports .docx files</span></div>
-          <div class="drop-ok" id="drop-ok"></div>
-        </div>
+
+      <!-- UPLOAD PANE -->
+      <div id="res-up-pane">
+        <label id="upload-label" style="display:block;border:2px dashed var(--hairline);border-radius:6px;padding:32px 20px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s">
+          <input type="file" id="resume-file-input" accept=".docx" style="display:none" onchange="onFile(this.files[0])">
+          <svg style="width:36px;height:36px;margin:0 auto 12px;display:block;color:var(--muted)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <div style="font-size:14px;color:var(--muted)"><strong style="color:var(--navy)">Click to upload</strong> or drag & drop</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Supports .docx files</div>
+          <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:8px;font-family:var(--mono);display:none"></div>
+        </label>
       </div>
-      <div class="tpane" id="res-paste-pane">
+
+      <!-- PASTE PANE -->
+      <div id="res-paste-pane" style="display:none">
         <textarea id="res-ta" placeholder="Paste your full resume text here…" rows="10" oninput="onResumeTextChange()"></textarea>
-        <button class="btn btn-navy" style="margin-top:10px" onclick="saveResumeFromPaste()">Save as Base Resume</button>
+        <button class="btn btn-navy" style="margin-top:10px" onclick="saveResumeFromPaste()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          Save as Base Resume
+        </button>
       </div>
-      <div class="pnote" style="margin-top:12px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Saved to this device — auto-loaded next time you open Tailor. Never sent to any server until you run the pipeline.
+
+      <div style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:12px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Saved to this device — auto-loaded next visit. Never sent until you run the pipeline.
       </div>
     </div>
+
   </div>
 </div>
 
@@ -585,16 +605,26 @@ function setStatus(msg){ document.getElementById('run-status').textContent=msg; 
 
 // ══ RESUME TABS ══
 function switchResTab(tab){
-  ['up','paste'].forEach(t=>{
-    document.getElementById('res-'+t+'-pane').classList.toggle('on',t===tab);
-  });
-  document.querySelectorAll('#bb0 .tbtn').forEach((b,i)=>b.classList.toggle('on',i===(tab==='up'?0:1)));
+  const upPane   = document.getElementById('res-up-pane');
+  const pastePane = document.getElementById('res-paste-pane');
+  const upBtn    = document.getElementById('tab-up-btn');
+  const pasteBtn = document.getElementById('tab-paste-btn');
+  if(!upPane || !pastePane) return;
+  upPane.style.display    = tab==='up'    ? 'block' : 'none';
+  pastePane.style.display = tab==='paste' ? 'block' : 'none';
+  if(upBtn){
+    upBtn.style.background    = tab==='up'    ? 'var(--navy)' : 'var(--bg)';
+    upBtn.style.color         = tab==='up'    ? '#fff'        : 'var(--muted)';
+    pasteBtn.style.background = tab==='paste' ? 'var(--navy)' : 'var(--bg)';
+    pasteBtn.style.color      = tab==='paste' ? '#fff'        : 'var(--muted)';
+  }
 }
 
 // ══ FILE HANDLING ══
 function onDrop(e){
   e.preventDefault();
-  document.getElementById('dropzone').classList.remove('over');
+  const lbl = document.getElementById('upload-label');
+  if(lbl) lbl.style.borderColor = 'var(--hairline)';
   onFile(e.dataTransfer.files[0]);
 }
 function onFile(file){
@@ -1338,6 +1368,27 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // ══ INIT — restore resume from localStorage if available ══
 (function init(){
   setStepState(0,'active');
+
+  // Wire drag-and-drop to the upload label
+  const uploadLabel = document.getElementById('upload-label');
+  if(uploadLabel){
+    uploadLabel.addEventListener('dragover', e=>{
+      e.preventDefault();
+      uploadLabel.style.borderColor='var(--navy)';
+      uploadLabel.style.background='#f0f4fd';
+    });
+    uploadLabel.addEventListener('dragleave', ()=>{
+      uploadLabel.style.borderColor='var(--hairline)';
+      uploadLabel.style.background='var(--bg)';
+    });
+    uploadLabel.addEventListener('drop', e=>{
+      e.preventDefault();
+      uploadLabel.style.borderColor='var(--hairline)';
+      uploadLabel.style.background='var(--bg)';
+      onFile(e.dataTransfer.files[0]);
+    });
+  }
+
   // Job search is independent — always enabled
   setStepState(5,'active');
   openBlock(5);
