@@ -241,27 +241,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   <div class="step-divider" id="pdiv0"></div>
   <div class="step-pip">
     <div class="step-dot" id="pd5"><span class="step-num">2</span></div>
-    <span class="step-label" id="pl5">Find Jobs 🇦🇺</span>
+    <span class="step-label" id="pl5">Find Jobs</span>
   </div>
   <div class="step-divider" id="pdiv5"></div>
   <div class="step-pip">
     <div class="step-dot" id="pd1"><span class="step-num">3</span></div>
-    <span class="step-label" id="pl1">Job Description</span>
+    <span class="step-label" id="pl1">Paste JD</span>
   </div>
   <div class="step-divider" id="pdiv1"></div>
   <div class="step-pip">
-    <div class="step-dot" id="pd2"><span class="step-num">4</span></div>
-    <span class="step-label" id="pl2">Match Score</span>
-  </div>
-  <div class="step-divider" id="pdiv2"></div>
-  <div class="step-pip">
-    <div class="step-dot" id="pd3"><span class="step-num">4</span></div>
-    <span class="step-label" id="pl3">Tailored Resume</span>
-  </div>
-  <div class="step-divider" id="pdiv3"></div>
-  <div class="step-pip">
-    <div class="step-dot" id="pd4"><span class="step-num">4</span></div>
-    <span class="step-label" id="pl4">Outreach</span>
+    <div class="step-dot" id="pd234"><span class="step-num">4</span></div>
+    <span class="step-label" id="pl234">Analysis ⚡ parallel</span>
   </div>
 </div>
 
@@ -782,6 +772,11 @@ async function runPipeline(){
     document.getElementById('block-'+i).classList.remove('locked');
     openBlock(i);
   });
+  // Mark combined step 4 as active in progress bar
+  const _p234 = document.getElementById('pd234');
+  const _l234 = document.getElementById('pl234');
+  if(_p234){ _p234.className='step-dot active'; }
+  if(_l234){ _l234.className='step-label active'; }
 
   // Show spinners in all three steps at once
   document.getElementById('match-loading').style.display='flex';
@@ -837,6 +832,13 @@ async function runPipeline(){
 
   const allDone = [matchResult,tailorResult,outreachResult].every(r=>r.status==='fulfilled');
   const anyDone = [matchResult,tailorResult,outreachResult].some(r=>r.status==='fulfilled');
+  // Update combined progress dot
+  const p234 = document.getElementById('pd234');
+  const l234 = document.getElementById('pl234');
+  if(p234){
+    if(allDone){ p234.className='step-dot done'; if(l234) l234.className='step-label done'; }
+    else if(anyDone){ p234.className='step-dot active'; if(l234) l234.className='step-label active'; }
+  }
   setStatus(allDone ? '✓ All done — paste a new JD anytime to re-run' : anyDone ? '⚠ Some steps completed — see errors above' : '✗ All steps failed — check your API key');
 
   btn.disabled=false;
@@ -882,27 +884,34 @@ async function generateTailor(manual=false, matchData=null, resume=null, jd=null
   if(manual){ setStatus('Generating resume & cover letter…'); setStepState(3,'active'); }
 
   try{
-    // Split into TWO separate calls to keep each under token limits
-    // Call A: tailored resume
-    const resumeRaw = await llmWithRetry(
-`Expert resume writer. Rewrite this resume to align with the job description below. Keep all employers, dates, education exactly as given — rewrite bullet points only. Start with a tailored professional summary. Weave in these missing keywords where truthful: ${missing||'none'}.
-Output the full resume as plain text only (no JSON, no markdown).
+    // Resume rewrite + cover letter run IN PARALLEL
+    const [resumeResult, clResult] = await Promise.allSettled([
+      llmWithRetry(
+`Expert resume writer. Rewrite this resume to align with the job description. Keep all employers, dates, education exactly as given — rewrite bullet points only. Add a tailored 2-sentence professional summary at the top. Weave in these missing keywords where truthful: ${missing||'none'}.
+Output plain text only (no JSON, no markdown).
 BASE RESUME: """${resume}"""
-JOB DESCRIPTION: """${jd}"""`, 1800);
+JOB DESCRIPTION: """${jd}"""`, 1800),
+      llmWithRetry(
+`Career coach. Write a professional cover letter: 3 paragraphs ~200 words. Address to "Hiring Manager". Mention the specific role and company from the JD. Reference 1-2 specific achievements from the resume. End with a clear call to action.
+Output plain text only (no JSON, no markdown).
+RESUME SUMMARY: """${resume.slice(0,1500)}"""
+JOB DESCRIPTION: """${jd}"""`, 800)
+    ]);
 
-    tailoredResumeText = resumeRaw.trim();
-    document.getElementById('tailored-resume-content').textContent = tailoredResumeText;
+    if(resumeResult.status === 'fulfilled'){
+      tailoredResumeText = resumeResult.value.trim();
+      document.getElementById('tailored-resume-content').textContent = tailoredResumeText;
+    } else {
+      document.getElementById('tailored-resume-content').textContent = '⚠ Generation failed: '+resumeResult.reason?.message;
+    }
+    if(clResult.status === 'fulfilled'){
+      document.getElementById('cover-letter-content').textContent = clResult.value.trim();
+    } else {
+      document.getElementById('cover-letter-content').textContent = '⚠ Cover letter failed: '+clResult.reason?.message;
+    }
+    if(resumeResult.status==='rejected' && clResult.status==='rejected')
+      throw new Error(resumeResult.reason?.message || 'Both calls failed');
 
-    // Call B: cover letter
-    const jdTitle = jd.split('\n').filter(l=>l.trim())[0]||'this role';
-    const clRaw = await llmWithRetry(
-`Career coach. Write a professional cover letter for this candidate applying for the role below.
-3 paragraphs, ~200 words. Address to "Hiring Manager". Mention the specific role and company (extract from JD). Reference 1-2 specific achievements from the resume. End with a clear call to action.
-Output plain text only — no JSON, no markdown.
-CANDIDATE RESUME SUMMARY: """${resume.slice(0,1500)}"""
-JOB DESCRIPTION: """${jd}"""`, 800);
-
-    document.getElementById('cover-letter-content').textContent = clRaw.trim();
     document.getElementById('tailor-loading').style.display='none';
     document.getElementById('tailor-out').style.display='block';
     setStepState(3,'done');
