@@ -182,6 +182,7 @@ textarea:focus{border-color:var(--navy);background:#fff}
 .resume-preview{background:var(--bg);border:1px solid var(--hairline);border-radius:var(--r-sm);padding:14px;font-size:12px;color:var(--muted);line-height:1.6;max-height:160px;overflow:hidden;position:relative;white-space:pre-wrap}
 .resume-preview::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--bg))}
 
+@keyframes pulse-btn{0%,100%{box-shadow:0 0 0 0 rgba(31,56,100,.4)}50%{box-shadow:0 0 0 8px rgba(31,56,100,0)}}
 /* SPINNER */
 .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;flex-shrink:0}
 .spin.dk{border-color:var(--hairline);border-top-color:var(--navy)}
@@ -239,28 +240,28 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   </div>
   <div class="step-divider" id="pdiv0"></div>
   <div class="step-pip">
-    <div class="step-dot" id="pd1"><span class="step-num">2</span></div>
+    <div class="step-dot" id="pd5"><span class="step-num">2</span></div>
+    <span class="step-label" id="pl5">Find Jobs 🇦🇺</span>
+  </div>
+  <div class="step-divider" id="pdiv5"></div>
+  <div class="step-pip">
+    <div class="step-dot" id="pd1"><span class="step-num">3</span></div>
     <span class="step-label" id="pl1">Job Description</span>
   </div>
   <div class="step-divider" id="pdiv1"></div>
   <div class="step-pip">
-    <div class="step-dot" id="pd2"><span class="step-num">3</span></div>
+    <div class="step-dot" id="pd2"><span class="step-num">4</span></div>
     <span class="step-label" id="pl2">Match Score</span>
   </div>
   <div class="step-divider" id="pdiv2"></div>
   <div class="step-pip">
     <div class="step-dot" id="pd3"><span class="step-num">4</span></div>
-    <span class="step-label" id="pl3">Resume + Cover Letter</span>
+    <span class="step-label" id="pl3">Tailored Resume</span>
   </div>
   <div class="step-divider" id="pdiv3"></div>
   <div class="step-pip">
-    <div class="step-dot" id="pd4"><span class="step-num">5</span></div>
-    <span class="step-label" id="pl4">Cold Outreach</span>
-  </div>
-  <div class="step-divider" id="pdiv4"></div>
-  <div class="step-pip">
-    <div class="step-dot" id="pd5"><span class="step-num">6</span></div>
-    <span class="step-label" id="pl5">Jobs in Sydney</span>
+    <div class="step-dot" id="pd4"><span class="step-num">4</span></div>
+    <span class="step-label" id="pl4">Outreach</span>
   </div>
 </div>
 
@@ -309,7 +310,42 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
       </div>
       <div class="pnote" style="margin-top:12px">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Stored in your browser session only. Never sent anywhere until you start the process.
+        Saved to this device — auto-loaded next time you open Tailor. Never sent to any server until you run the pipeline.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 6: JOBS IN SYDNEY ── -->
+<div class="step-block" id="block-5">
+  <div class="step-hd" onclick="toggleBlock(5)">
+    <div class="step-num-badge" id="nb5">2</div>
+    <div>
+      <div class="step-hd-title">Find Relevant Jobs</div>
+      <div class="step-hd-sub">All Australia · SEEK, Indeed, LinkedIn & Jora · 🔥 last 24h first · refreshes every 60 min</div>
+    </div>
+    <span class="step-hd-status pending" id="bs5">Waiting</span>
+    <span class="step-chevron" id="bc5">⌄</span>
+  </div>
+  <div class="step-body collapsed" id="bb5">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        All Australia · SEEK, Indeed, LinkedIn & Jora
+      </div>
+      <button class="btn btn-teal btn-sm" id="jobs-btn" onclick="searchJobs()" disabled>
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+        Refresh Now
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);display:flex;align-items:center;gap:8px">
+      <span id="jobs-refresh-label">Jobs from last 7 days</span>
+      <span id="jobs-refresh-countdown" style="color:var(--teal)"></span>
+    </div>
+    <div id="jobs-out">
+      <div class="info-box info-note">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Upload your resume first (Step 1) — jobs will auto-search on SEEK for your profile.
       </div>
     </div>
   </div>
@@ -318,10 +354,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 <!-- ── STEP 2: JOB DESCRIPTION ── -->
 <div class="step-block locked" id="block-1">
   <div class="step-hd" onclick="toggleBlock(1)">
-    <div class="step-num-badge" id="nb1">2</div>
+    <div class="step-num-badge" id="nb1">3</div>
     <div>
       <div class="step-hd-title">Paste Job Description</div>
-      <div class="step-hd-sub">Update anytime — re-runs the full pipeline automatically</div>
+      <div class="step-hd-sub">Find a job above → its JD auto-fills here — or paste any JD manually</div>
     </div>
     <span class="step-hd-status pending" id="bs1">Waiting</span>
     <span class="step-chevron" id="bc1">⌄</span>
@@ -362,10 +398,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 <!-- ── STEP 3: MATCH SCORE ── -->
 <div class="step-block locked" id="block-2">
   <div class="step-hd" onclick="toggleBlock(2)">
-    <div class="step-num-badge" id="nb2">3</div>
+    <div class="step-num-badge" id="nb2">4a</div>
     <div>
       <div class="step-hd-title">Match Score & Profile Fit</div>
-      <div class="step-hd-sub">ATS score, hire likelihood, skill gaps</div>
+      <div class="step-hd-sub">Runs simultaneously with steps 4b & 4c</div>
     </div>
     <span class="step-hd-status pending" id="bs2">Waiting</span>
     <span class="step-chevron" id="bc2">⌄</span>
@@ -412,10 +448,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 <!-- ── STEP 4: RESUME + COVER LETTER ── -->
 <div class="step-block locked" id="block-3">
   <div class="step-hd" onclick="toggleBlock(3)">
-    <div class="step-num-badge" id="nb3">4</div>
+    <div class="step-num-badge" id="nb3">4b</div>
     <div>
       <div class="step-hd-title">Tailored Resume & Cover Letter</div>
-      <div class="step-hd-sub">Generated from your base resume + this JD</div>
+      <div class="step-hd-sub">Runs simultaneously with 4a & 4c</div>
     </div>
     <span class="step-hd-status pending" id="bs3">Waiting</span>
     <span class="step-chevron" id="bc3">⌄</span>
@@ -456,10 +492,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 <!-- ── STEP 5: COLD OUTREACH ── -->
 <div class="step-block locked" id="block-4">
   <div class="step-hd" onclick="toggleBlock(4)">
-    <div class="step-num-badge" id="nb4">5</div>
+    <div class="step-num-badge" id="nb4">4c</div>
     <div>
       <div class="step-hd-title">Cold Outreach Message</div>
-      <div class="step-hd-sub">LinkedIn message or email to the recruiter / hiring manager</div>
+      <div class="step-hd-sub">Runs simultaneously with 4a & 4b</div>
     </div>
     <span class="step-hd-status pending" id="bs4">Waiting</span>
     <span class="step-chevron" id="bc4">⌄</span>
@@ -495,43 +531,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   </div>
 </div>
 
-<!-- ── STEP 6: JOBS IN SYDNEY ── -->
-<div class="step-block" id="block-5">
-  <div class="step-hd" onclick="toggleBlock(5)">
-    <div class="step-num-badge" id="nb5">6</div>
-    <div>
-      <div class="step-hd-title">Relevant Jobs in Sydney</div>
-      <div class="step-hd-sub">Live listings from SEEK, Indeed & Jora — click any to run the full pipeline</div>
-    </div>
-    <span class="step-hd-status pending" id="bs5">Waiting</span>
-    <span class="step-chevron" id="bc5">⌄</span>
-  </div>
-  <div class="step-body collapsed" id="bb5">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <input type="text" id="jobs-loc" placeholder="📍 Sydney" value="Sydney" style="border:1px solid var(--hairline);border-radius:var(--r-sm);padding:8px 11px;font-size:13px;color:var(--ink);background:var(--white);font-family:var(--ui);outline:none;width:150px">
-      <select id="jobs-portal" style="border:1px solid var(--hairline);border-radius:var(--r-sm);padding:8px 11px;font-size:13px;color:var(--ink);background:var(--white);font-family:var(--ui);outline:none;cursor:pointer">
-        <option value="seek">SEEK (seek.com.au)</option>
-        <option value="indeed">Indeed</option>
-        <option value="jora">Jora</option>
-        <option value="all">All Portals</option>
-      </select>
-      <button class="btn btn-teal btn-sm" id="jobs-btn" onclick="searchJobs()" disabled>
-        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
-        Search Jobs
-      </button>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);display:flex;align-items:center;gap:8px">
-      <span id="jobs-refresh-label">Auto-refreshes every 15 min · showing jobs from last 7 days</span>
-      <span id="jobs-refresh-countdown" style="color:var(--teal)"></span>
-    </div>
-    <div id="jobs-out">
-      <div class="info-box info-note">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Upload your resume first (Step 1) — jobs will auto-search on SEEK for your profile.
-      </div>
-    </div>
-  </div>
-</div>
 
 </main>
 <script>
@@ -630,35 +629,42 @@ async function setBaseResume(text, name){
   baseResume = text;
   baseResumeName = name;
   baseResumeWords = text.trim().split(/\s+/).length;
-  // Show stored view
+  // Persist to localStorage so it survives page refreshes
+  try{
+    localStorage.setItem('tailor_resume', text);
+    localStorage.setItem('tailor_resume_name', name);
+  }catch(e){ console.warn('localStorage unavailable:', e.message); }
+  showStoredResume(name, text);
+  // Extract pills (async) then auto-search
+  extractPills().catch(()=>{});
+  document.getElementById('jobs-btn').disabled = false;
+  setStepState(5,'active');
+  openBlock(5);
+  searchJobs();
+  if(window._seekRefreshTimer) clearInterval(window._seekRefreshTimer);
+  startRefreshCountdown(60); // refresh every 60 min
+}
+
+function showStoredResume(name, text){
+  baseResumeWords = text.trim().split(/\s+/).length;
   document.getElementById('resume-upload-view').style.display='none';
   document.getElementById('resume-stored-view').style.display='block';
   document.getElementById('resume-stored-name').textContent = '✓ '+name;
-  document.getElementById('resume-stored-meta').textContent = baseResumeWords+' words · stored in session';
+  document.getElementById('resume-stored-meta').textContent = baseResumeWords+' words · saved to this device';
   document.getElementById('resume-preview').textContent = text.slice(0,400)+'…';
-  // Update progress
   setStepState(0,'done');
   setStepState(1,'active');
   document.getElementById('run-btn').disabled = !currentJD.trim();
   openBlock(1); closeBlock(0);
-  // Extract pills (async) then auto-search SEEK
-  extractPills().catch(()=>{}); // non-blocking
-  document.getElementById('jobs-btn').disabled = false;
-  setStepState(5,'active');
-  openBlock(5);
-  searchJobs(); // auto-trigger on resume upload
-  // Auto-refresh every 15 minutes
-  if(window._seekRefreshTimer) clearInterval(window._seekRefreshTimer);
-  window._seekRefreshTimer = setInterval(()=>{
-    if(baseResume) searchJobs();
-  }, 15*60*1000);
 }
 function clearResume(){
   baseResume=''; baseResumeName=''; pills=[];
+  try{ localStorage.removeItem('tailor_resume'); localStorage.removeItem('tailor_resume_name'); }catch(e){}
   document.getElementById('resume-upload-view').style.display='block';
   document.getElementById('resume-stored-view').style.display='none';
   setStepState(0,'active');
   document.getElementById('block-1').classList.add('locked');
+  if(window._seekRefreshTimer){ clearInterval(window._seekRefreshTimer); window._seekRefreshTimer=null; }
 }
 
 // ══ JD CHANGE ══
@@ -761,74 +767,108 @@ async function llmWithRetry(prompt, maxTok, retries=2){
   }
 }
 
-// ══ MAIN PIPELINE ══
+// ══ MAIN PIPELINE — steps 4a/4b/4c run in parallel ══
 let lastMatchScore = 0;
 
 async function runPipeline(){
   if(!baseResume||!currentJD){ showErr('Upload your resume and paste a JD first.'); return; }
   const btn=document.getElementById('run-btn');
-  btn.disabled=true; btn.innerHTML='<div class="spin"></div> Running…';
+  btn.disabled=true; btn.innerHTML='<div class="spin"></div> Analysing…';
+  setStatus('Running all steps in parallel…');
 
+  // Unlock and show loading state for all three parallel steps immediately
   [2,3,4].forEach(i=>{
     setStepState(i,'active');
     document.getElementById('block-'+i).classList.remove('locked');
+    openBlock(i);
   });
 
-  // Trim inputs to keep prompts lean (avoid 500s from oversized requests)
+  // Show spinners in all three steps at once
+  document.getElementById('match-loading').style.display='flex';
+  document.getElementById('match-out').style.display='none';
+  document.getElementById('tailor-loading').style.display='flex';
+  document.getElementById('tailor-out').style.display='none';
+  document.getElementById('tailor-skipped-msg').style.display='none';
+  document.getElementById('outreach-loading').style.display='flex';
+  document.getElementById('outreach-out').style.display='none';
+
   const resume = baseResume.slice(0,4000);
   const jd     = currentJD.slice(0,3000);
 
-  try{
-    // ── STEP 3: MATCH (separate concise prompt) ──
-    setStatus('Step 1/3 — Scoring match…');
-    openBlock(2);
-    document.getElementById('match-loading').style.display='flex';
-    document.getElementById('match-out').style.display='none';
+  // ── Fire all three in parallel ──
+  const [matchResult, tailorResult, outreachResult] = await Promise.allSettled([
+    runMatch(resume, jd),
+    runTailor(resume, jd),
+    runOutreach(resume, jd)
+  ]);
 
-    const matchRaw = await llmWithRetry(
+  // Handle match result
+  if(matchResult.status === 'fulfilled'){
+    setStepState(2,'done');
+  } else {
+    setStepState(2,'pending');
+    document.getElementById('match-loading').style.display='none';
+    document.getElementById('match-out').innerHTML = '<div class="info-box info-warn" style="margin:0">⚠ Match score failed: '+esc(matchResult.reason?.message||'unknown error')+'<br><button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="runMatch(baseResume.slice(0,4000),currentJD.slice(0,3000)).then(()=>setStepState(2,'done')).catch(e=>showErr(e.message))">Retry</button></div>';
+    document.getElementById('match-out').style.display='block';
+    document.getElementById('match-loading').style.display='none';
+  }
+
+  // Handle tailor result
+  if(tailorResult.status === 'fulfilled'){
+    setStepState(3,'done');
+  } else {
+    setStepState(3,'pending');
+    document.getElementById('tailor-loading').style.display='none';
+    document.getElementById('tailor-skipped-msg').innerHTML = '<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><div>Resume generation failed: '+esc(tailorResult.reason?.message||'unknown')+'<br><button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="generateTailor(true)">Retry</button></div>';
+    document.getElementById('tailor-skipped-msg').style.display='flex';
+  }
+
+  // Handle outreach result
+  if(outreachResult.status === 'fulfilled'){
+    setStepState(4,'done');
+  } else {
+    setStepState(4,'pending');
+    document.getElementById('outreach-loading').style.display='none';
+    const errEl = document.createElement('div');
+    errEl.className='info-box info-warn';
+    errEl.innerHTML='⚠ Outreach failed: '+esc(outreachResult.reason?.message||'unknown')+'<br><button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="generateOutreach()">Retry</button>';
+    document.getElementById('outreach-out').before(errEl);
+  }
+
+  const allDone = [matchResult,tailorResult,outreachResult].every(r=>r.status==='fulfilled');
+  const anyDone = [matchResult,tailorResult,outreachResult].some(r=>r.status==='fulfilled');
+  setStatus(allDone ? '✓ All done — paste a new JD anytime to re-run' : anyDone ? '⚠ Some steps completed — see errors above' : '✗ All steps failed — check your API key');
+
+  btn.disabled=false;
+  btn.innerHTML='<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Run Again';
+}
+
+// Individual step runners (called in parallel)
+async function runMatch(resume, jd){
+  const matchRaw = await llmWithRetry(
 `You are a brutally honest senior ATS recruiter and hiring manager. Score this candidate strictly — most candidates score 30-60, only exceptional fits score above 75. Missing a hard requirement (specific tool, industry, years) means a significant deduction.
-
 Scoring guide: 0-30=poor fit/missing majors; 31-49=stretch/significant gaps; 50-64=partial match/some gaps; 65-79=good match/minor gaps; 80-100=strong/near-perfect fit.
-
 Reply ONLY with minified JSON, zero prose outside JSON:
-{"hireLikelihood":<0-100>,"verdict":"Strong Match|Good Match|Partial Match|Stretch Role|Poor Match","summary":"<2 honest sentences naming specific gaps>","confidence":"<1 sentence on scoring confidence>","dimensions":[{"label":"Technical Skills","score":<0-100>},{"label":"Experience Level","score":<0-100>},{"label":"Education","score":<0-100>},{"label":"Industry Fit","score":<0-100>}],"matchedKeywords":[<up to 10 strings>],"missingKeywords":[<up to 10 strings - list ALL missing hard requirements>],"gaps":[{"area":"<label>","fix":"<specific 1-sentence action>"}]}
-gaps: up to 5. penalise hard: missing required tools -15pts each, wrong industry -20pts, under-experienced -10pts.
+{"hireLikelihood":<0-100>,"verdict":"Strong Match|Good Match|Partial Match|Stretch Role|Poor Match","summary":"<2 honest sentences naming specific gaps>","confidence":"<1 sentence>","dimensions":[{"label":"Technical Skills","score":<0-100>},{"label":"Experience Level","score":<0-100>},{"label":"Education","score":<0-100>},{"label":"Industry Fit","score":<0-100>}],"matchedKeywords":[<up to 10 strings>],"missingKeywords":[<up to 10 strings>],"gaps":[{"area":"<label>","fix":"<1-sentence action>"}]}
+penalise hard: missing required tools -15pts, wrong industry -20pts, under-experienced -10pts.
 RESUME: """${resume}"""
 JD: """${jd}"""`, 1000);
+  const matchData = safeJSON(matchRaw);
+  lastMatchScore = matchData.hireLikelihood || matchData.atsScore || 0;
+  renderMatch(matchData);
+  document.getElementById('match-loading').style.display='none';
+  document.getElementById('match-out').style.display='block';
+  return matchData;
+}
 
-    const matchData = safeJSON(matchRaw);
-    lastMatchScore = matchData.hireLikelihood || matchData.atsScore || 0;
-    renderMatch(matchData);
-    document.getElementById('match-loading').style.display='none';
-    document.getElementById('match-out').style.display='block';
-    setStepState(2,'done');
+async function runTailor(resume, jd){
+  // Check score after match — if match is still running, just proceed
+  document.getElementById('tailor-skipped-msg').style.display='none';
+  await generateTailor(false, null, resume, jd);
+}
 
-    // ── STEP 4: TAILOR + COVER LETTER (skip if score < 50) ──
-    openBlock(3);
-    document.getElementById('tailor-loading').style.display='none';
-    document.getElementById('tailor-out').style.display='none';
-    document.getElementById('tailor-skipped-msg').style.display='none';
-
-    if(lastMatchScore < 50){
-      document.getElementById('tailor-skipped-msg').style.display='flex';
-      setStepState(3,'done');
-      setStatus('Step 2/3 — Match <50%, skipping auto-generation (you can still generate manually)…');
-    } else {
-      await generateTailor(false, matchData, resume, jd);
-    }
-
-    // ── STEP 5: COLD OUTREACH ──
-    await generateOutreach(resume, jd);
-
-    setStatus('✓ Done! Paste a new JD anytime to re-run.');
-
-  } catch(e){
-    setStatus('Error: '+e.message);
-    showErr(e.message);
-  } finally {
-    btn.disabled=false;
-    btn.innerHTML='<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Run Full Analysis';
-  }
+async function runOutreach(resume, jd){
+  await generateOutreach(resume, jd);
 }
 
 async function generateTailor(manual=false, matchData=null, resume=null, jd=null){
@@ -839,8 +879,7 @@ async function generateTailor(manual=false, matchData=null, resume=null, jd=null
   document.getElementById('tailor-skipped-msg').style.display='none';
   document.getElementById('tailor-loading').style.display='flex';
   document.getElementById('tailor-out').style.display='none';
-  if(manual) setStatus('Generating resume & cover letter…');
-  setStepState(3,'active');
+  if(manual){ setStatus('Generating resume & cover letter…'); setStepState(3,'active'); }
 
   try{
     // Split into TWO separate calls to keep each under token limits
@@ -1017,6 +1056,31 @@ RESUME: """${baseResume.slice(0,2000)}"""`, 400);
   }catch(e){ console.warn('pill extract failed:',e.message); }
 }
 
+// ══ REFRESH COUNTDOWN ══
+function startRefreshCountdown(intervalMinutes){
+  if(window._seekRefreshTimer) clearInterval(window._seekRefreshTimer);
+  if(window._seekCountdownTimer) clearInterval(window._seekCountdownTimer);
+
+  let secondsLeft = intervalMinutes * 60;
+
+  function updateLabel(){
+    const mins = Math.floor(secondsLeft/60);
+    const secs = secondsLeft % 60;
+    const lbl = document.getElementById('jobs-refresh-label');
+    const cdEl = document.getElementById('jobs-refresh-countdown');
+    if(lbl) lbl.textContent = 'Jobs from last 7 days · auto-refreshes in ';
+    if(cdEl) cdEl.textContent = mins>0 ? `${mins}m ${String(secs).padStart(2,'0')}s` : `${secs}s`;
+    secondsLeft--;
+    if(secondsLeft < 0){
+      secondsLeft = intervalMinutes * 60;
+      if(baseResume) searchJobs();
+    }
+  }
+
+  updateLabel();
+  window._seekCountdownTimer = setInterval(updateLabel, 1000);
+}
+
 // ══ JOB SEARCH ══
 function seekLocationEnum(l){
   const s=l.toLowerCase();
@@ -1040,152 +1104,117 @@ function seekLocationEnum(l){
 }
 
 async function searchJobs(){
-  const apifyKey=document.getElementById('apify-key').value.trim();
-  const loc=document.getElementById('jobs-loc').value.trim()||'Sydney';
-  const portal=(document.getElementById('jobs-portal')||{value:'seek'}).value||'seek';
-  // Apify key is optional — job search now uses Anthropic web_search
-  if(!document.getElementById('api-key').value.trim()){
+  const key = document.getElementById('api-key').value.trim();
+  if(!key){
     document.getElementById('jobs-out').innerHTML='<div class="info-box info-warn"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Add your Anthropic API key in ⚙ Settings to search jobs.</div>';
     return;
   }
-  const roles=pills.filter(p=>p.type==='role').map(p=>p.label);
-  const primaryRole=roles[0]||'Business Analyst';
-  const btn=document.getElementById('jobs-btn');
-  btn.disabled=true; btn.innerHTML='<div class="spin"></div> Searching…';
-  document.getElementById('jobs-out').innerHTML='<div class="step-loading"><div class="spin dk"></div> Searching '+esc(portal==='all'?'all portals':portal.toUpperCase())+' for '+esc(primaryRole)+' in '+esc(loc)+'…</div>';
+  const roles = pills.filter(p=>p.type==='role').map(p=>p.label);
+  const skills = pills.filter(p=>p.type==='skill').map(p=>p.label).slice(0,2);
+  const primaryRole = roles[0] || 'Business Analyst';
+  const altRole = roles[1] || skills[0] || primaryRole;
+
+  const btn = document.getElementById('jobs-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Searching…';
   setStepState(5,'active');
+  document.getElementById('jobs-out').innerHTML =
+    '<div class="step-loading"><div class="spin dk"></div><div>' +
+    '<div>Searching SEEK · Indeed · LinkedIn · Jora · Talent.com across Australia…</div>' +
+    '<div style="font-size:11px;color:var(--muted);margin-top:4px">🔥 Last 24 hours shown first · 7 days total</div>' +
+    '</div></div>';
+
+  const now = new Date();
+  const sevenAgo = new Date(now - 7*24*60*60*1000);
+  const fmt = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const ep = document.getElementById('api-ep').value.trim() || 'https://api.anthropic.com/v1/messages';
+
+  const searches = [
+    { portal:'seek',     q:`"${primaryRole}" Australia site:seek.com.au after:${fmt(sevenAgo)}` },
+    { portal:'indeed',   q:`"${primaryRole}" Australia site:au.indeed.com after:${fmt(sevenAgo)}` },
+    { portal:'linkedin', q:`"${primaryRole}" Australia site:linkedin.com/jobs after:${fmt(sevenAgo)}` },
+    { portal:'jora',     q:`"${primaryRole}" Australia site:au.jora.com after:${fmt(sevenAgo)}` },
+    { portal:'talent',   q:`"${altRole}" jobs Australia site:au.talent.com "posted today" OR "1 day ago" OR "2 days ago"` },
+  ];
+
+  async function fetchPortal(s){
+    const prompt = `Search for job listings and return them as a JSON array.
+
+Search query: "${s.q}"
+
+Extract every job found. For each return:
+- title, company, location (city + state e.g. "Sydney, NSW"), salary (or ""), description (1-2 sentence summary), applyUrl (full URL), listingDate (e.g. "today", "1 day ago", "3 days ago"), workType ("Full Time"/"Part Time"/"Contract"/"Casual"/""), isNew (true if posted today or yesterday)
+
+Return ONLY a JSON array, zero prose or markdown:
+[{"title":"","company":"","location":"","salary":"","description":"","applyUrl":"","listingDate":"","workType":"","isNew":false}]
+
+Aim for 8+ results. Never fabricate.`;
+
+    const res = await fetch(ep, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok) throw new Error('API '+res.status);
+    const data = await res.json();
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text||'').join('');
+    const a=text.indexOf('['), z=text.lastIndexOf(']');
+    if(a<0||z<=a) return [];
+    try{
+      const jobs = JSON.parse(text.slice(a,z+1));
+      return Array.isArray(jobs) ? jobs.map(j=>({...j,_portal:s.portal})) : [];
+    }catch(e){ console.warn(s.portal+' parse fail:',e.message); return []; }
+  }
 
   try{
-    let allItems=[];
-    const portalsToSearch = portal==='all' ? ['seek','indeed','jora'] : [portal];
+    const results = await Promise.allSettled(searches.map(s=>fetchPortal(s)));
+    let all = [];
+    results.forEach(r=>{ if(r.status==='fulfilled') all=all.concat(r.value); });
 
-    for(const p of portalsToSearch){
-      try{
-        const items = await searchPortal(p, primaryRole, loc, apifyKey);
-        allItems = allItems.concat(items.map(j=>({...j,_portal:p})));
-      }catch(e){
-        console.warn(p+' search failed:',e.message);
-      }
-    }
+    // De-duplicate by title+company
+    const seen = new Set();
+    all = all.filter(j=>{
+      const k = (j.title||'').toLowerCase().trim()+'|'+(j.company||'').toLowerCase().trim();
+      if(seen.has(k)) return false;
+      seen.add(k); return true;
+    });
 
-    if(allItems.length===0) throw new Error('No results from any portal. Check your Apify key and credits.');
-    renderJobs(allItems, primaryRole, loc);
+    // Sort: isNew first
+    all.sort((a,b)=>(b.isNew?1:0)-(a.isNew?1:0));
+
+    if(all.length===0) throw new Error('No jobs found across any portal. Try Refresh Now in a moment.');
+
+    renderJobs(all, primaryRole, 'Australia');
     setStepState(5,'done');
-    const now=new Date();
-    document.getElementById('jobs-refresh-label').textContent=
-      'Last updated '+now.toLocaleTimeString()+' · last 7 days · '+allItems.length+' jobs · auto-refreshes 15 min';
+
+    const newCount = all.filter(j=>j.isNew).length;
+    const lbl = document.getElementById('jobs-refresh-label');
+    if(lbl) lbl.textContent = all.length+' jobs across Australia · '+newCount+' posted last 24h · next refresh in ';
+    startRefreshCountdown(60);
+
   }catch(e){
-    document.getElementById('jobs-out').innerHTML=`<div class="info-box info-warn"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Search failed: ${esc(e.message)}</div>`;
+    document.getElementById('jobs-out').innerHTML =
+      '<div class="info-box info-warn"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'+esc(e.message)+'</div>';
     setStepState(5,'pending');
   }finally{
     btn.disabled=false;
-    btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg> Search Jobs';
+    btn.innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg> Refresh Now';
   }
-}
-
-async function searchPortal(portal, role, loc, apifyKey){
-  // Use Anthropic API with web_search tool to find jobs — no CORS issues
-  const key = document.getElementById('api-key').value.trim();
-  const ep  = document.getElementById('api-ep').value.trim() || 'https://api.anthropic.com/v1/messages';
-
-  const portalUrls = {
-    seek:   `https://www.seek.com.au/${encodeURIComponent(role.toLowerCase().replace(/\s+/g,'-'))}-jobs/in-${encodeURIComponent(loc.toLowerCase())}?daterange=7`,
-    indeed: `https://au.indeed.com/jobs?q=${encodeURIComponent(role)}&l=${encodeURIComponent(loc)}&fromage=7`,
-    jora:   `https://au.jora.com/j?q=${encodeURIComponent(role)}&l=${encodeURIComponent(loc)}&tp=1w`,
-  };
-
-  const searchQuery = `${role} jobs ${loc} ${portal==='jora'?'site:au.jora.com':portal==='indeed'?'site:au.indeed.com':'site:seek.com.au'} posted this week`;
-
-  const prompt = `Search for job listings and return results as a JSON array.
-
-Search query: "${searchQuery}"
-
-From the search results, extract up to 10 job listings. For each job return:
-- title: job title
-- company: company name  
-- location: city/suburb
-- salary: salary if shown (empty string if not)
-- description: 2-3 sentence summary of the role
-- applyUrl: the direct URL to apply or view the job
-- listingDate: when posted (e.g. "2 days ago", "today")
-- workType: full-time/part-time/contract/casual if shown
-
-Return ONLY a valid JSON array, no prose, no markdown fences:
-[{"title":"...","company":"...","location":"...","salary":"...","description":"...","applyUrl":"...","listingDate":"...","workType":"..."}]
-
-If fewer than 10 results found, return what's available. Never fabricate jobs.`;
-
-  const res = await fetch(ep, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 3000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-
-  if(!res.ok){
-    let msg='API error '+res.status;
-    try{ const j=await res.json(); msg+=': '+(j.error&&j.error.message||'').slice(0,200); }catch(_){}
-    throw new Error(msg);
-  }
-
-  const data = await res.json();
-  // Collect all text blocks from response (web_search may produce multiple blocks)
-  const textBlocks = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text||'').join('\n');
-
-  if(!textBlocks.trim()) throw new Error('No response for '+portal);
-
-  // Parse JSON array
-  let s = textBlocks.trim().replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
-  const arrStart = s.indexOf('['), arrEnd = s.lastIndexOf(']');
-  if(arrStart>=0 && arrEnd>arrStart){
-    try{
-      const jobs = JSON.parse(s.slice(arrStart, arrEnd+1));
-      return Array.isArray(jobs) ? jobs : [];
-    }catch(e){
-      console.warn('JSON parse failed for '+portal+':',e.message, s.slice(0,300));
-      return [];
-    }
-  }
-  return [];
-}
-
-
-async function pollRun(runId,apifyKey,max=55000){
-  const t0=Date.now();
-  while(Date.now()-t0<max){
-    await new Promise(r=>setTimeout(r,2800));
-    const sr=await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apifyKey}`);
-    if(!sr.ok) continue;
-    const sd=await sr.json();
-    const status=sd.data&&sd.data.status;
-    if(status==='SUCCEEDED'){
-      const ir=await fetch(`https://api.apify.com/v2/datasets/${sd.data.defaultDatasetId}/items?token=${apifyKey}&limit=12`);
-      if(!ir.ok) throw new Error('Could not fetch results');
-      return await ir.json();
-    }
-    if(['FAILED','ABORTED','TIMED-OUT'].includes(status)) throw new Error('Run '+status);
-  }
-  throw new Error('Timed out — try again');
 }
 
 function renderJobs(items,q,loc){
   if(!items||!items.length){
-    document.getElementById('jobs-out').innerHTML=`<div class="info-box info-warn"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>No results for "${esc(q)}" in ${esc(loc)}. Try adjusting the location.</div>`;
+    document.getElementById('jobs-out').innerHTML=`<div class="info-box info-warn"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>No results found. Try clicking Search Jobs again.</div>`;
     return;
   }
   jobsData=items;
-  const portalLabel={seek:'SEEK',indeed:'Indeed',jora:'Jora'};
-  const portalColor={seek:'#1A7A8A',indeed:'#003A9B',jora:'#E33B2E'};
-  let h=`<div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:10px">${items.length} jobs · <strong>${esc(loc)}</strong></div><div class="jobs-grid">`;
+  const portalLabel={seek:'SEEK',indeed:'Indeed',linkedin:'LinkedIn',jora:'Jora',talent:'Talent.com',other:'Other'};
+  const portalColor={seek:'#1A7A8A',indeed:'#003A9B',linkedin:'#0077B5',jora:'#E33B2E',talent:'#7B3FA0',other:'#697587'};
+  const newCount = items.filter(j=>j.isNew).length;
+  let h=`<div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span>${items.length} jobs across Australia</span>
+    ${newCount>0?`<span style="background:#e8f6f1;color:#2E8B6B;border:1px solid #c3e6d8;border-radius:20px;padding:2px 9px;font-weight:700">🔥 ${newCount} new today</span>`:''}
+  </div><div class="jobs-grid">`;
   items.forEach((j,i)=>{
     const title=esc(j.title||j.jobTitle||'Untitled');
     const co=esc(j.company||j.advertiser||'');
@@ -1202,7 +1231,10 @@ function renderJobs(items,q,loc){
             <div class="jtitle">${title}</div>
           </div>
           ${co?`<div class="jco">${co}</div>`:''}
-          <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${pColor};background:${pColor}18;padding:2px 6px;border-radius:3px;letter-spacing:.05em">${pLabel}</span>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap">
+            <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${pColor};background:${pColor}18;padding:2px 6px;border-radius:3px;letter-spacing:.05em">${pLabel}</span>
+            ${j.isNew?'<span style="font-family:var(--mono);font-size:9px;font-weight:700;color:#2E8B6B;background:#e8f6f1;border:1px solid #c3e6d8;padding:2px 6px;border-radius:3px">🔥 NEW</span>':''} 
+          </div>
           <div class="jmeta">
             ${jloc?`<span class="jtag jtag-loc">📍 ${jloc}</span>`:''}
             ${wtype?`<span class="jtag">${wtype}</span>`:''}
@@ -1250,7 +1282,12 @@ function useJobJD(i){
   openBlock(1);
   setStepState(1,'active');
   // Scroll to step 2
+  // Scroll to JD block and highlight run button
   document.getElementById('block-1').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>{
+    const runBtn = document.getElementById('run-btn');
+    if(runBtn){ runBtn.style.animation='pulse-btn 1s ease 3'; }
+  }, 600);
   // Add visual tag
   const status=document.getElementById('bs1');
   status.textContent='JD from SEEK';
@@ -1272,9 +1309,34 @@ function showErr(msg){
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ══ INIT ══
-setStepState(0,'active');
-document.getElementById('jobs-btn').disabled=true;
+// ══ INIT — restore resume from localStorage if available ══
+(function init(){
+  setStepState(0,'active');
+  document.getElementById('jobs-btn').disabled=true;
+
+  // Restore persisted resume
+  try{
+    const savedText = localStorage.getItem('tailor_resume');
+    const savedName = localStorage.getItem('tailor_resume_name') || 'Saved Resume';
+    if(savedText && savedText.length > 100){
+      baseResume = savedText;
+      baseResumeName = savedName;
+      showStoredResume(savedName, savedText);
+      // Show a subtle "restored" indicator
+      const meta = document.getElementById('resume-stored-meta');
+      if(meta) meta.textContent = meta.textContent + ' · restored from last session';
+      // Kick off pills extraction and job search in background
+      extractPills().catch(()=>{});
+      document.getElementById('jobs-btn').disabled = false;
+      setStepState(5,'active');
+      openBlock(5);
+      // Delay job search slightly so page renders first
+      setTimeout(()=>searchJobs(), 800);
+      // Auto-refresh
+      startRefreshCountdown(60); // refresh every 60 min
+    }
+  }catch(e){ console.warn('Could not restore resume:', e.message); }
+})();
 </script>
 </body>
 </html>
