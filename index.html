@@ -323,7 +323,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         All Australia · SEEK, Indeed, LinkedIn & Jora
       </div>
-      <button class="btn btn-teal btn-sm" id="jobs-btn" onclick="searchJobs()" disabled>
+      <button class="btn btn-teal btn-sm" id="jobs-btn" onclick="searchJobs()">
         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
         Refresh Now
       </button>
@@ -335,7 +335,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
     <div id="jobs-out">
       <div class="info-box info-note">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Upload your resume first (Step 1) — jobs will auto-search on SEEK for your profile.
+        Searching for relevant jobs… Upload your resume (Step 1) to refine results based on your profile.
       </div>
     </div>
   </div>
@@ -599,13 +599,30 @@ function onDrop(e){
 }
 function onFile(file){
   if(!file) return;
-  if(!file.name.toLowerCase().endsWith('.docx')){ showErr('Please upload a .docx file.'); return; }
+  if(!file.name.toLowerCase().endsWith('.docx')){
+    showErr('Please upload a .docx file.');
+    return;
+  }
+  // Show loading state immediately
+  const dropOk = document.getElementById('drop-ok');
+  if(dropOk){ dropOk.textContent = 'Reading '+file.name+'…'; dropOk.style.display='block'; }
+
   const reader = new FileReader();
+  reader.onerror = () => showErr('Could not read file — try again.');
   reader.onload = async ev => {
     try {
       const r = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
+      if(!r.value || r.value.trim().length < 50){
+        showErr('File appears empty — make sure it is a valid .docx resume.');
+        if(dropOk){ dropOk.textContent = ''; dropOk.style.display='none'; }
+        return;
+      }
+      if(dropOk){ dropOk.textContent = '✓ '+file.name; dropOk.style.display='block'; }
       setBaseResume(r.value, file.name);
-    } catch(e){ showErr('Could not read file: '+e.message); }
+    } catch(err){
+      showErr('Could not read .docx — try the Paste text option instead. Error: '+err.message);
+      if(dropOk){ dropOk.textContent = ''; dropOk.style.display='none'; }
+    }
   };
   reader.readAsArrayBuffer(file);
 }
@@ -625,14 +642,12 @@ async function setBaseResume(text, name){
     localStorage.setItem('tailor_resume_name', name);
   }catch(e){ console.warn('localStorage unavailable:', e.message); }
   showStoredResume(name, text);
-  // Extract pills (async) then auto-search
-  extractPills().catch(()=>{});
-  document.getElementById('jobs-btn').disabled = false;
-  setStepState(5,'active');
-  openBlock(5);
-  searchJobs();
-  if(window._seekRefreshTimer) clearInterval(window._seekRefreshTimer);
-  startRefreshCountdown(60); // refresh every 60 min
+  // Extract pills from resume (improves job search accuracy)
+  // Then re-run search with better role terms
+  extractPills().then(()=>{
+    // Only re-search if pills were actually extracted (resume is new)
+    if(pills.length > 0) searchJobs();
+  }).catch(()=>{});
 }
 
 function showStoredResume(name, text){
@@ -1118,10 +1133,11 @@ async function searchJobs(){
     document.getElementById('jobs-out').innerHTML='<div class="info-box info-warn"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Add your Anthropic API key in ⚙ Settings to search jobs.</div>';
     return;
   }
+  // Use extracted pills if available; fall back to sensible defaults so search works without resume
   const roles = pills.filter(p=>p.type==='role').map(p=>p.label);
   const skills = pills.filter(p=>p.type==='skill').map(p=>p.label).slice(0,2);
   const primaryRole = roles[0] || 'Business Analyst';
-  const altRole = roles[1] || skills[0] || primaryRole;
+  const altRole = roles[1] || skills[0] || 'Data Analyst';
 
   const btn = document.getElementById('jobs-btn');
   btn.disabled = true;
@@ -1310,10 +1326,11 @@ function showErr(msg){
   box.className='info-box info-warn';
   box.innerHTML=`<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(msg)}`;
   // append near run button
-  const row=document.getElementById('run-btn').parentElement;
-  const old=row.querySelector('.info-box');
+  const runBtn = document.getElementById('run-btn');
+  const row = runBtn ? runBtn.parentElement : document.querySelector('main');
+  const old = row ? row.querySelector('.info-box') : null;
   if(old) old.remove();
-  row.after(box);
+  if(row) row.after(box); else document.querySelector('main').prepend(box);
   setTimeout(()=>box.remove(),8000);
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1321,7 +1338,12 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // ══ INIT — restore resume from localStorage if available ══
 (function init(){
   setStepState(0,'active');
-  document.getElementById('jobs-btn').disabled=true;
+  // Job search is independent — always enabled
+  setStepState(5,'active');
+  openBlock(5);
+  // Auto-search on load (no resume needed — uses default roles if resume not loaded yet)
+  setTimeout(()=>searchJobs(), 400);
+  startRefreshCountdown(60);
 
   // Restore persisted resume
   try{
@@ -1341,8 +1363,6 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
       openBlock(5);
       // Delay job search slightly so page renders first
       setTimeout(()=>searchJobs(), 800);
-      // Auto-refresh
-      startRefreshCountdown(60); // refresh every 60 min
     }
   }catch(e){ console.warn('Could not restore resume:', e.message); }
 })();
