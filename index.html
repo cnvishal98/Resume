@@ -1277,9 +1277,9 @@ function renderJobs(items,q,loc){
     const posted=esc(j.listingDate||j.datePosted||'');
     const desc=esc(j.description||j.teaser||'(Click to expand)');
     const url=j.applyUrl||j.jobUrl||j.url||j.link||'';
-    const portal=(j._portal||j.portal||'other').toLowerCase();
-    const pLabel=portalLabel[portal]||portal.toUpperCase()||'Job';
-    const pColor=portalColor[portal]||'#697587';
+    const portalRaw=(j._portal||j.portal||'other').toLowerCase().trim();
+    const pLabel=portalLabel[portalRaw]||portalRaw.toUpperCase()||'Job';
+    const pColor=portalColor[portalRaw]||'#697587';
     h+=`<div class="jcard" id="jc${i}">
       <div class="jcard-top" onclick="toggleJob(${i})">
         <div class="jcard-left">
