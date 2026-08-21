@@ -297,10 +297,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
         <div id="res-word-count" style="font-size:12px;color:var(--muted);font-family:var(--mono)"></div>
         <button onclick="saveResumeFromPaste()"
+          id="save-resume-btn"
           style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ui);display:flex;align-items:center;gap:8px">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
           Save Resume
         </button>
+        <div id="save-debug" style="font-size:12px;color:var(--coral);margin-top:6px;font-family:var(--mono)"></div>
       </div>
       <div style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:10px">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -370,9 +372,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
         ondragover="event.preventDefault();this.classList.add('over')"
         ondragleave="this.classList.remove('over')"
         ondrop="onJdDrop(event)" style="padding:20px">
-        <input type="file" accept=".docx,.txt,.pdf" onchange="onJdFile(this.files[0])">
+        <input type="file" accept=".txt" onchange="onJdFile(this.files[0])">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <div class="drop-lbl"><strong>Click to upload</strong> or drag & drop<br><span style="font-size:11px">Supports .docx or .txt</span></div>
+        <div class="drop-lbl"><strong>Click to upload</strong> or drag & drop<br><span style="font-size:11px">Supports .txt files</span></div>
         <div class="drop-ok" id="jd-drop-ok"></div>
       </div>
     </div>
@@ -608,15 +610,51 @@ function onResumeTextChange(){
   if(wc) wc.textContent = words > 0 ? words + ' words' : '';
 }
 function saveResumeFromPaste(){
-  const txt = document.getElementById('res-ta').value.trim();
+  const dbg = document.getElementById('save-debug');
+  function debug(msg){ if(dbg) dbg.textContent = msg; console.log('[Save]', msg); }
+
+  debug('Button clicked…');
+
+  const ta = document.getElementById('res-ta');
+  if(!ta){ debug('ERROR: textarea not found'); return; }
+
+  const txt = ta.value.trim();
+  debug('Text length: ' + txt.length);
+
   if(txt.length < 30){
-    const ta = document.getElementById('res-ta');
     ta.style.borderColor = 'var(--coral)';
     ta.placeholder = 'Please paste your resume text above first…';
-    setTimeout(()=>{ ta.style.borderColor=''; }, 2000);
+    debug('Too short — paste your resume first');
+    setTimeout(()=>{ ta.style.borderColor = ''; ta.placeholder = ''; }, 3000);
     return;
   }
-  setBaseResume(txt, 'My Resume');
+
+  debug('Saving ' + txt.split(/\s+/).length + ' words…');
+
+  try {
+    localStorage.setItem('tailor_resume', txt);
+    localStorage.setItem('tailor_resume_name', 'My Resume');
+    debug('localStorage OK');
+  } catch(e) {
+    debug('localStorage failed: ' + e.message);
+  }
+
+  baseResume = txt;
+  baseResumeName = 'My Resume';
+  baseResumeWords = txt.trim().split(/\s+/).length;
+
+  try {
+    showStoredResume('My Resume', txt);
+    debug('Done!');
+  } catch(e) {
+    debug('showStoredResume error: ' + e.message);
+    console.error(e);
+  }
+
+  // Kick off pill extraction and job search in background — non-blocking
+  try {
+    extractPills().then(()=>{ if(pills.length>0) searchJobs(); }).catch(()=>{});
+  } catch(e) {}
 }
 
 function editResume(){
@@ -649,16 +687,22 @@ async function setBaseResume(text, name){
 
 function showStoredResume(name, text){
   baseResumeWords = text.trim().split(/\s+/).length;
-  document.getElementById('resume-upload-view').style.display='none';
-  document.getElementById('resume-stored-view').style.display='block';
-  document.getElementById('resume-stored-name').textContent = '✓ '+name;
-  document.getElementById('resume-stored-meta').textContent = baseResumeWords+' words · saved to this device';
-  document.getElementById('resume-preview').textContent = text.slice(0,500);
+  const uploadView = document.getElementById('resume-upload-view');
+  const storedView = document.getElementById('resume-stored-view');
+  if(uploadView) uploadView.style.display='none';
+  if(storedView) storedView.style.display='block';
+  const nameEl = document.getElementById('resume-stored-name');
+  if(nameEl) nameEl.textContent = '✓ '+name;
+  const metaEl = document.getElementById('resume-stored-meta');
+  if(metaEl) metaEl.textContent = baseResumeWords+' words · saved to this device';
+  const prevEl = document.getElementById('resume-preview');
+  if(prevEl) prevEl.textContent = text.slice(0,500);
   setStepState(0,'done');
   setStepState(1,'active');
   const runBtn = document.getElementById('run-btn');
   if(runBtn) runBtn.disabled = !currentJD.trim();
-  openBlock(1); closeBlock(0);
+  openBlock(1);
+  closeBlock(0);
 }
 function clearResume(){
   baseResume=''; baseResumeName=''; pills=[];
@@ -726,21 +770,7 @@ function onJdDrop(e){
 async function onJdFile(file){
   if(!file) return;
   const name = file.name.toLowerCase();
-  if(name.endsWith('.docx')){
-    const reader = new FileReader();
-    reader.onload = async ev => {
-      try{
-        const r = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
-        document.getElementById('jd-ta').value = r.value;
-        currentJD = r.value;
-        document.getElementById('jd-drop-ok').textContent = '✓ '+file.name;
-        document.getElementById('jd-drop-ok').style.display='block';
-        document.getElementById('run-btn').disabled = !baseResume||!currentJD;
-        switchJdTab('paste');
-      }catch(e){ showErr('Could not read JD file: '+e.message); }
-    };
-    reader.readAsArrayBuffer(file);
-  } else if(name.endsWith('.txt')){
+  if(name.endsWith('.txt')){
     const reader = new FileReader();
     reader.onload = ev => {
       document.getElementById('jd-ta').value = ev.target.result;
@@ -816,7 +846,7 @@ async function runPipeline(){
   } else {
     setStepState(2,'pending');
     document.getElementById('match-loading').style.display='none';
-    document.getElementById('match-out').innerHTML = '<div class="info-box info-warn" style="margin:0">⚠ Match score failed: '+esc(matchResult.reason?.message||'unknown error')+'<br><button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="runMatch(baseResume.slice(0,4000),currentJD.slice(0,3000)).then(()=>setStepState(2,'done')).catch(e=>showErr(e.message))">Retry</button></div>';
+    document.getElementById('match-out').innerHTML = '<div class="info-box info-warn" style="margin:0">⚠ Match score failed: '+esc(matchResult.reason?.message||'unknown error')+'<br><button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="runMatch(baseResume.slice(0,4000),currentJD.slice(0,3000)).then(function(){setStepState(2,&quot;done&quot;)}).catch(function(e){showErr(e.message)})">Retry</button></div>';
     document.getElementById('match-out').style.display='block';
     document.getElementById('match-loading').style.display='none';
   }
