@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tailor — AI Job Application Suite</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" onerror="window._mammothFailed=true" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
@@ -302,9 +302,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
           <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your <strong style="color:var(--navy)">.docx</strong> resume file</div>
-          <input type="file" id="resume-file-input" accept=".docx"
-            onchange="onFile(this.files[0])"
-            style="display:block;margin:0 auto;font-size:13px;font-family:var(--ui);cursor:pointer;color:var(--ink)">
+          <input type="file" id="resume-file-input" accept=".docx,.doc,.pdf,.txt"
+            onchange="handleFileChange(this)"
+            style="display:block;margin:0 auto;font-size:14px;font-family:var(--ui);cursor:pointer;padding:8px 0">
           <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:10px;font-family:var(--mono);display:none"></div>
         </div>
       </div>
@@ -627,34 +627,72 @@ function onDrop(e){
   // handled by event listener in init — this is legacy fallback
   onFile(e.dataTransfer.files[0]);
 }
-function onFile(file){
-  if(!file) return;
-  if(!file.name.toLowerCase().endsWith('.docx')){
-    showErr('Please upload a .docx file.');
+function handleFileChange(input){
+  const file = input.files && input.files[0];
+  if(!file){
+    showUploadStatus('No file selected', 'error');
     return;
   }
-  // Show loading state immediately
-  const dropOk = document.getElementById('drop-ok');
-  if(dropOk){ dropOk.textContent = 'Reading '+file.name+'…'; dropOk.style.display='block'; }
+  showUploadStatus('Reading ' + file.name + '…', 'loading');
 
-  const reader = new FileReader();
-  reader.onerror = () => showErr('Could not read file — try again.');
-  reader.onload = async ev => {
-    try {
-      const r = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
-      if(!r.value || r.value.trim().length < 50){
-        showErr('File appears empty — make sure it is a valid .docx resume.');
-        if(dropOk){ dropOk.textContent = ''; dropOk.style.display='none'; }
-        return;
-      }
-      if(dropOk){ dropOk.textContent = '✓ '+file.name; dropOk.style.display='block'; }
-      setBaseResume(r.value, file.name);
-    } catch(err){
-      showErr('Could not read .docx — try the Paste text option instead. Error: '+err.message);
-      if(dropOk){ dropOk.textContent = ''; dropOk.style.display='none'; }
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  // Handle plain text files directly
+  if(ext === 'txt'){
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const text = ev.target.result;
+      if(!text || text.trim().length < 50){ showUploadStatus('File appears empty', 'error'); return; }
+      showUploadStatus('✓ ' + file.name, 'ok');
+      setBaseResume(text, file.name);
+    };
+    reader.onerror = () => showUploadStatus('Could not read file', 'error');
+    reader.readAsText(file);
+    return;
+  }
+
+  // Handle .docx with mammoth
+  if(ext === 'docx' || ext === 'doc'){
+    if(typeof mammoth === 'undefined'){
+      showUploadStatus('mammoth.js not loaded — check your internet connection', 'error');
+      return;
     }
-  };
-  reader.readAsArrayBuffer(file);
+    const reader = new FileReader();
+    reader.onerror = () => showUploadStatus('FileReader error', 'error');
+    reader.onload = async ev => {
+      try {
+        const result = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
+        const text = result.value || '';
+        if(text.trim().length < 50){
+          showUploadStatus('Could not extract text — try Paste text tab instead', 'error');
+          return;
+        }
+        showUploadStatus('✓ ' + file.name + ' (' + text.trim().split(/\s+/).length + ' words)', 'ok');
+        setBaseResume(text, file.name);
+      } catch(e) {
+        showUploadStatus('Could not parse .docx: ' + e.message + ' — try Paste text tab', 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
+  showUploadStatus('Please upload a .docx or .txt file', 'error');
+}
+
+function showUploadStatus(msg, type){
+  const el = document.getElementById('drop-ok');
+  if(!el) return;
+  el.style.display = 'block';
+  el.style.color = type==='ok' ? 'var(--green)' : type==='error' ? 'var(--coral)' : 'var(--amber)';
+  el.textContent = msg;
+}
+
+// Legacy wrapper
+function onFile(file){
+  if(!file) return;
+  // create a fake input-like object
+  handleFileChange({ files: [file] });
 }
 function onResumeTextChange(){ /* just live update */ }
 function saveResumeFromPaste(){
@@ -1367,6 +1405,13 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 
 // ══ INIT — restore resume from localStorage if available ══
 (function init(){
+  // Check mammoth loaded
+  setTimeout(()=>{
+    if(typeof mammoth === 'undefined'){
+      const el = document.getElementById('drop-ok');
+      if(el){ el.style.display='block'; el.style.color='var(--coral)'; el.textContent='⚠ mammoth.js failed to load — try refreshing or use Paste text tab'; }
+    }
+  }, 2000);
   setStepState(0,'active');
 
   // Wire drag-and-drop to the upload label
