@@ -295,33 +295,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
         </button>
       </div>
 
-      <!-- UPLOAD PANE -->
+      <!-- UPLOAD PANE — single visible input, no tricks -->
       <div id="res-up-pane">
-        <!-- Hidden file input — triggered by button click -->
-        <input type="file" id="resume-file-input" accept=".docx"
-          style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;z-index:-1"
-          onchange="onFile(this.files[0])">
-
-        <!-- Drop zone div — click calls input.click() directly, no label magic -->
-        <div id="upload-dropzone"
-          style="border:2px dashed var(--hairline);border-radius:6px;padding:36px 20px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s"
-          onclick="document.getElementById('resume-file-input').click()">
-          <svg style="width:36px;height:36px;margin:0 auto 12px;display:block;color:var(--muted);pointer-events:none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <div id="upload-dropzone" style="border:2px dashed var(--hairline);border-radius:6px;padding:28px 20px;text-align:center;background:var(--bg)">
+          <svg style="width:36px;height:36px;margin:0 auto 10px;display:block;color:var(--muted)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
-          <div style="font-size:14px;color:var(--muted);pointer-events:none">
-            <strong style="color:var(--navy)">Click to choose file</strong> or drag & drop
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px;pointer-events:none">Supports .docx files</div>
-          <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:8px;font-family:var(--mono);display:none;pointer-events:none"></div>
-        </div>
-
-        <!-- Fallback explicit button in case div click doesn't work -->
-        <div style="text-align:center;margin-top:10px">
-          <button onclick="document.getElementById('resume-file-input').click()"
-            style="background:var(--navy);color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--ui)">
-            Browse for .docx file
-          </button>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your <strong style="color:var(--navy)">.docx</strong> resume file</div>
+          <input type="file" id="resume-file-input" accept=".docx"
+            onchange="onFile(this.files[0])"
+            style="display:block;margin:0 auto;font-size:13px;font-family:var(--ui);cursor:pointer;color:var(--ink)">
+          <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:10px;font-family:var(--mono);display:none"></div>
         </div>
       </div>
 
