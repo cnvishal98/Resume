@@ -1318,36 +1318,101 @@ function toggleJob(i){
   c.classList.toggle('open');
 }
 
-function useJobJD(i){
+async function useJobJD(i){
   const j=jobsData[i]; if(!j) return;
   const title=j.title||j.jobTitle||'';
   const co=j.company||j.advertiser||'';
   const loc=j.location||j.suburb||'';
-  const desc=j.description||j.teaser||j.jobDescription||'';
-  const reqs=j.requirements||'';
-  let txt='';
-  if(title) txt+=title+'\n';
-  if(co) txt+=co+'\n';
-  if(loc) txt+=loc+'\n\n';
-  if(desc) txt+=desc+'\n';
-  if(reqs) txt+='\nRequirements:\n'+reqs;
-  // Populate JD field and open step 2
-  document.getElementById('jd-ta').value=txt.trim();
-  currentJD=txt.trim();
-  document.getElementById('run-btn').disabled=!baseResume||!currentJD;
+  const url=j.applyUrl||j.jobUrl||j.url||j.link||'';
+  const portal=j._portal||j.portal||'';
+
+  // Show placeholder immediately so user sees something
+  let placeholder = [title,co,loc].filter(Boolean).join('\n');
+  placeholder += '\n\nFetching full job description…';
+  const ta = document.getElementById('jd-ta');
+  ta.value = placeholder;
+  ta.style.color = 'var(--muted)';
+
   openBlock(1);
   setStepState(1,'active');
-  // Scroll to step 2
-  // Scroll to JD block and highlight run button
   document.getElementById('block-1').scrollIntoView({behavior:'smooth',block:'start'});
+  const statusEl = document.getElementById('bs1');
+  if(statusEl){ statusEl.textContent='Fetching JD…'; statusEl.className='step-hd-status active'; }
+
+  // Fetch full JD via Anthropic web_search
+  const key = document.getElementById('api-key').value.trim();
+  const ep  = document.getElementById('api-ep').value.trim()||'https://api.anthropic.com/v1/messages';
+
+  try{
+    let fullJD = '';
+
+    if(key && url){
+      const prompt = `Fetch the full job description from this URL and extract ALL the text content of the job posting.
+
+URL: ${url}
+
+Extract and return:
+- Job title
+- Company name
+- Location
+- Salary (if shown)
+- Full job description / about the role
+- Key responsibilities (all bullet points)
+- Requirements / qualifications (all bullet points)
+- About the company (if included)
+
+Return as plain text exactly as it appears, keeping all bullet points and sections. Do not summarise — return the complete text.`;
+
+      const res = await fetch(ep, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:3000,
+          tools:[{type:'web_search_20250305',name:'web_search'}],
+          messages:[{role:'user',content:prompt}]
+        })
+      });
+
+      if(res.ok){
+        const data = await res.json();
+        const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text||'').join('\n').trim();
+        if(text && text.length > 100) fullJD = text;
+      }
+    }
+
+    // Fall back to what we have from the search snippet
+    if(!fullJD){
+      const desc = j.description||j.teaser||j.jobDescription||'';
+      const reqs = j.requirements||'';
+      fullJD = [title, co, loc, '', desc, reqs ? '\nRequirements:\n'+reqs : ''].filter(Boolean).join('\n').trim();
+    }
+
+    ta.value = fullJD;
+    ta.style.color = '';
+    currentJD = fullJD;
+    document.getElementById('run-btn').disabled = !baseResume||!currentJD;
+    if(statusEl){ statusEl.textContent='JD from '+(portal||'web').toUpperCase(); statusEl.className='step-hd-status active'; }
+
+    // Auto-run pipeline
+    if(baseResume && currentJD){
+      setTimeout(()=>runPipeline(), 300);
+    }
+
+  }catch(e){
+    // Fall back gracefully
+    const desc = j.description||j.teaser||'';
+    ta.value = [title,co,loc,'',desc].filter(Boolean).join('\n').trim();
+    ta.style.color = '';
+    currentJD = ta.value;
+    document.getElementById('run-btn').disabled = !baseResume||!currentJD;
+    if(statusEl){ statusEl.textContent='JD loaded'; statusEl.className='step-hd-status active'; }
+  }
+
   setTimeout(()=>{
     const runBtn = document.getElementById('run-btn');
-    if(runBtn){ runBtn.style.animation='pulse-btn 1s ease 3'; }
+    if(runBtn) runBtn.style.animation='pulse-btn 1s ease 3';
   }, 600);
-  // Add visual tag
-  const status=document.getElementById('bs1');
-  status.textContent='JD from SEEK';
-  status.className='step-hd-status active';
 }
 
 // ══ ERROR ══
