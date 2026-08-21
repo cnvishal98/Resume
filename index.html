@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tailor — AI Job Application Suite</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" onerror="window._mammothFailed=true" crossorigin="anonymous"></script>
+<!-- mammoth removed — upload replaced with paste -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
@@ -260,67 +260,51 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   <div class="step-hd" onclick="toggleBlock(0)">
     <div class="step-num-badge" id="nb0">1</div>
     <div>
-      <div class="step-hd-title">Upload Your Base Resume</div>
-      <div class="step-hd-sub">Stored locally — never changes between applications</div>
+      <div class="step-hd-title">Your Base Resume</div>
+      <div class="step-hd-sub">Paste once — saved permanently to this device</div>
     </div>
     <span class="step-hd-status pending" id="bs0">Pending</span>
     <span class="step-chevron open" id="bc0">⌄</span>
   </div>
   <div class="step-body" id="bb0">
 
-    <!-- STORED STATE: shown after upload -->
+    <!-- SAVED STATE -->
     <div id="resume-stored-view" style="display:none">
-      <div class="resume-stored">
-        <div class="resume-stored-icon">✓</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:linear-gradient(135deg,#e8f6f1,#f0fff8);border:1px solid #c3e6d8;border-radius:6px;margin-bottom:14px">
+        <div style="width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0">✓</div>
         <div style="flex:1">
-          <div class="resume-stored-name" id="resume-stored-name"></div>
-          <div class="resume-stored-meta" id="resume-stored-meta"></div>
-          <button class="btn-ghost" style="margin-top:8px" onclick="clearResume()">↺ Replace resume</button>
+          <div id="resume-stored-name" style="font-size:13px;font-weight:700;color:var(--green)"></div>
+          <div id="resume-stored-meta" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
         </div>
+        <button onclick="editResume()" style="background:none;border:1px solid var(--hairline);border-radius:4px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--ui)">Edit</button>
       </div>
-      <div class="resume-preview" id="resume-preview" style="margin-top:14px"></div>
+      <div id="resume-preview" style="background:var(--bg);border:1px solid var(--hairline);border-radius:4px;padding:14px;font-size:12px;color:var(--muted);line-height:1.6;max-height:160px;overflow:hidden;position:relative;white-space:pre-wrap">
+      </div>
+      <div style="height:30px;background:linear-gradient(transparent,var(--bg));margin-top:-30px;position:relative;pointer-events:none"></div>
     </div>
 
-    <!-- UPLOAD STATE: shown before upload -->
+    <!-- EDIT STATE -->
     <div id="resume-upload-view">
-      <!-- TAB SWITCHER -->
-      <div style="display:flex;gap:4px;margin-bottom:14px">
-        <button id="tab-up-btn" onclick="switchResTab('up')"
-          style="border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--mono);background:var(--navy);color:#fff">
-          Upload .docx
-        </button>
-        <button id="tab-paste-btn" onclick="switchResTab('paste')"
-          style="border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--mono);background:var(--bg);color:var(--muted)">
-          Paste text
-        </button>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Open your resume → Select All → Copy → Paste below
       </div>
-
-      <!-- UPLOAD PANE — single visible input, no tricks -->
-      <div id="res-up-pane">
-        <div id="upload-dropzone" style="border:2px dashed var(--hairline);border-radius:6px;padding:28px 20px;text-align:center;background:var(--bg)">
-          <svg style="width:36px;height:36px;margin:0 auto 10px;display:block;color:var(--muted)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your <strong style="color:var(--navy)">.docx</strong> resume file</div>
-          <input type="file" id="resume-file-input" accept=".docx,.doc,.pdf,.txt"
-            onchange="handleFileChange(this)"
-            style="display:block;margin:0 auto;font-size:14px;font-family:var(--ui);cursor:pointer;padding:8px 0">
-          <div id="drop-ok" style="font-size:12px;color:var(--green);font-weight:600;margin-top:10px;font-family:var(--mono);display:none"></div>
-        </div>
-      </div>
-
-      <!-- PASTE PANE -->
-      <div id="res-paste-pane" style="display:none">
-        <textarea id="res-ta" placeholder="Paste your full resume text here…" rows="10" oninput="onResumeTextChange()"></textarea>
-        <button class="btn btn-navy" style="margin-top:10px" onclick="saveResumeFromPaste()">
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-          Save as Base Resume
+      <textarea id="res-ta"
+        placeholder="Paste your full resume text here (Ctrl+A then Ctrl+C from Word/PDF, then Ctrl+V here)…"
+        rows="14"
+        style="width:100%;border:1px solid var(--hairline);border-radius:6px;padding:12px;font-size:13px;color:var(--ink);background:#fff;font-family:var(--ui);resize:vertical;outline:none;line-height:1.6"
+        oninput="onResumeTextChange()"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
+        <div id="res-word-count" style="font-size:12px;color:var(--muted);font-family:var(--mono)"></div>
+        <button onclick="saveResumeFromPaste()"
+          style="background:var(--navy);color:#fff;border:none;border-radius:6px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--ui);display:flex;align-items:center;gap:8px">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Save Resume
         </button>
       </div>
-
-      <div style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:12px">
+      <div style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:10px">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Saved to this device — auto-loaded next visit. Never sent until you run the pipeline.
+        Saved to this device only — never sent anywhere until you click Run
       </div>
     </div>
 
@@ -605,21 +589,7 @@ function setStepState(i, state){ // 'pending'|'active'|'done'
 function setStatus(msg){ document.getElementById('run-status').textContent=msg; }
 
 // ══ RESUME TABS ══
-function switchResTab(tab){
-  const upPane   = document.getElementById('res-up-pane');
-  const pastePane = document.getElementById('res-paste-pane');
-  const upBtn    = document.getElementById('tab-up-btn');
-  const pasteBtn = document.getElementById('tab-paste-btn');
-  if(!upPane || !pastePane) return;
-  upPane.style.display    = tab==='up'    ? 'block' : 'none';
-  pastePane.style.display = tab==='paste' ? 'block' : 'none';
-  if(upBtn){
-    upBtn.style.background    = tab==='up'    ? 'var(--navy)' : 'var(--bg)';
-    upBtn.style.color         = tab==='up'    ? '#fff'        : 'var(--muted)';
-    pasteBtn.style.background = tab==='paste' ? 'var(--navy)' : 'var(--bg)';
-    pasteBtn.style.color      = tab==='paste' ? '#fff'        : 'var(--muted)';
-  }
-}
+function switchResTab(){/* removed */}
 
 // ══ FILE HANDLING ══
 function onDrop(e){
@@ -627,78 +597,37 @@ function onDrop(e){
   // handled by event listener in init — this is legacy fallback
   onFile(e.dataTransfer.files[0]);
 }
-function handleFileChange(input){
-  const file = input.files && input.files[0];
-  if(!file){
-    showUploadStatus('No file selected', 'error');
-    return;
-  }
-  showUploadStatus('Reading ' + file.name + '…', 'loading');
-
-  const ext = file.name.split('.').pop().toLowerCase();
-
-  // Handle plain text files directly
-  if(ext === 'txt'){
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const text = ev.target.result;
-      if(!text || text.trim().length < 50){ showUploadStatus('File appears empty', 'error'); return; }
-      showUploadStatus('✓ ' + file.name, 'ok');
-      setBaseResume(text, file.name);
-    };
-    reader.onerror = () => showUploadStatus('Could not read file', 'error');
-    reader.readAsText(file);
-    return;
-  }
-
-  // Handle .docx with mammoth
-  if(ext === 'docx' || ext === 'doc'){
-    if(typeof mammoth === 'undefined'){
-      showUploadStatus('mammoth.js not loaded — check your internet connection', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onerror = () => showUploadStatus('FileReader error', 'error');
-    reader.onload = async ev => {
-      try {
-        const result = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
-        const text = result.value || '';
-        if(text.trim().length < 50){
-          showUploadStatus('Could not extract text — try Paste text tab instead', 'error');
-          return;
-        }
-        showUploadStatus('✓ ' + file.name + ' (' + text.trim().split(/\s+/).length + ' words)', 'ok');
-        setBaseResume(text, file.name);
-      } catch(e) {
-        showUploadStatus('Could not parse .docx: ' + e.message + ' — try Paste text tab', 'error');
-      }
-    };
-    reader.readAsArrayBuffer(file);
-    return;
-  }
-
-  showUploadStatus('Please upload a .docx or .txt file', 'error');
+// Upload removed — resume is pasted directly
+function onFile(){ /* no-op — upload removed */ }
+function handleFileChange(){ /* no-op */ }
+function showUploadStatus(){ /* no-op */ }
+function onResumeTextChange(){
+  const txt = document.getElementById('res-ta').value;
+  const words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+  const wc = document.getElementById('res-word-count');
+  if(wc) wc.textContent = words > 0 ? words + ' words' : '';
 }
-
-function showUploadStatus(msg, type){
-  const el = document.getElementById('drop-ok');
-  if(!el) return;
-  el.style.display = 'block';
-  el.style.color = type==='ok' ? 'var(--green)' : type==='error' ? 'var(--coral)' : 'var(--amber)';
-  el.textContent = msg;
-}
-
-// Legacy wrapper
-function onFile(file){
-  if(!file) return;
-  // create a fake input-like object
-  handleFileChange({ files: [file] });
-}
-function onResumeTextChange(){ /* just live update */ }
 function saveResumeFromPaste(){
   const txt = document.getElementById('res-ta').value.trim();
-  if(txt.length < 100){ showErr('Resume text is too short — paste your full resume.'); return; }
-  setBaseResume(txt, 'Pasted Resume');
+  if(txt.length < 30){
+    const ta = document.getElementById('res-ta');
+    ta.style.borderColor = 'var(--coral)';
+    ta.placeholder = 'Please paste your resume text above first…';
+    setTimeout(()=>{ ta.style.borderColor=''; }, 2000);
+    return;
+  }
+  setBaseResume(txt, 'My Resume');
+}
+
+function editResume(){
+  const stored = document.getElementById('resume-stored-view');
+  const upload = document.getElementById('resume-upload-view');
+  stored.style.display = 'none';
+  upload.style.display = 'block';
+  // Pre-populate textarea with current resume
+  const ta = document.getElementById('res-ta');
+  if(ta && baseResume) ta.value = baseResume;
+  openBlock(0);
 }
 async function setBaseResume(text, name){
   baseResume = text;
@@ -724,10 +653,11 @@ function showStoredResume(name, text){
   document.getElementById('resume-stored-view').style.display='block';
   document.getElementById('resume-stored-name').textContent = '✓ '+name;
   document.getElementById('resume-stored-meta').textContent = baseResumeWords+' words · saved to this device';
-  document.getElementById('resume-preview').textContent = text.slice(0,400)+'…';
+  document.getElementById('resume-preview').textContent = text.slice(0,500);
   setStepState(0,'done');
   setStepState(1,'active');
-  document.getElementById('run-btn').disabled = !currentJD.trim();
+  const runBtn = document.getElementById('run-btn');
+  if(runBtn) runBtn.disabled = !currentJD.trim();
   openBlock(1); closeBlock(0);
 }
 function clearResume(){
@@ -1405,36 +1335,10 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 
 // ══ INIT — restore resume from localStorage if available ══
 (function init(){
-  // Check mammoth loaded
-  setTimeout(()=>{
-    if(typeof mammoth === 'undefined'){
-      const el = document.getElementById('drop-ok');
-      if(el){ el.style.display='block'; el.style.color='var(--coral)'; el.textContent='⚠ mammoth.js failed to load — try refreshing or use Paste text tab'; }
-    }
-  }, 2000);
+
   setStepState(0,'active');
 
   // Wire drag-and-drop to the upload label
-  // Wire drag-and-drop to the upload dropzone div
-  const uploadDz = document.getElementById('upload-dropzone');
-  if(uploadDz){
-    uploadDz.addEventListener('dragover', e=>{
-      e.preventDefault();
-      uploadDz.style.borderColor='var(--navy)';
-      uploadDz.style.background='#f0f4fd';
-    });
-    uploadDz.addEventListener('dragleave', ()=>{
-      uploadDz.style.borderColor='var(--hairline)';
-      uploadDz.style.background='var(--bg)';
-    });
-    uploadDz.addEventListener('drop', e=>{
-      e.preventDefault();
-      uploadDz.style.borderColor='var(--hairline)';
-      uploadDz.style.background='var(--bg)';
-      onFile(e.dataTransfer.files[0]);
-    });
-  }
-
   // Job search is independent — always enabled
   setStepState(5,'active');
   openBlock(5);
